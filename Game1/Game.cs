@@ -234,7 +234,7 @@ namespace Game1
             {
                 tempY.Y -= speed;
             }
-            
+
             /*if (KeyboardState.IsKeyDown(Keys.Space))
             {
                 tempY.Y += 15 * speed;
@@ -271,7 +271,7 @@ namespace Game1
                 {
                     levelObject.Tick(Position, ref health);
                 }
-                
+
 
             }
             if (grounded)
@@ -298,8 +298,8 @@ namespace Game1
             {
                 Position += tempX;
             }
-            
-            
+
+
         }
 
         public void LoadLevelGL()

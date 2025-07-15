@@ -446,19 +446,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/thomas/.nuget/packages/": {}
+    "/home/thomas/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/thomas/Documents/vscode/ProjectGame/Game1/Game1.csproj",
+      "projectUniqueName": "/home/thomas/Documents/vscode/ProjectGame/Game1/Game1.csproj",
       "projectName": "Game1",
-      "projectPath": "/Users/thomas/Documents/vscode/ProjectGame/Game1/Game1.csproj",
-      "packagesPath": "/Users/thomas/.nuget/packages/",
-      "outputPath": "/Users/thomas/Documents/vscode/ProjectGame/Game1/obj/",
+      "projectPath": "/home/thomas/Documents/vscode/ProjectGame/Game1/Game1.csproj",
+      "packagesPath": "/home/thomas/.nuget/packages/",
+      "outputPath": "/home/thomas/Documents/vscode/ProjectGame/Game1/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/thomas/.nuget/NuGet/NuGet.Config"
+        "/home/thomas/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -480,7 +480,7 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "all"
+        "auditMode": "direct"
       },
       "SdkAnalysisLevel": "9.0.100"
     },
@@ -508,12 +508,18 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[9.0.4, 9.0.4]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.100/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.105/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
