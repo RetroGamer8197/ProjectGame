@@ -6,7 +6,7 @@ namespace Game1 {
     {
         public enum ObjectType
         {
-            None, Triangle, Plane, Entity, Cube
+            None = 0, Triangle= 1, Plane = 2, Entity = 3, Cube = 4
         }
         public ObjectType objectType;
 
@@ -147,6 +147,8 @@ namespace Game1 {
 
         public override Triangle[] ConvertToTriangles()
         {
+            // OpenGL only has full support for processing triangles so any more complex shapes need to be converted down to triangles
+
             List<Triangle> TriangleList = [];
 
             for (int i = 0; i < vertexindices.Length / 3; i++)
@@ -201,7 +203,7 @@ namespace Game1 {
         public override Triangle[] ConvertToTriangles()
         {
             // OpenGL only has full support for processing triangles so any more complex shapes need to be converted down to triangles
-            
+
             Triangle[] returnTriangles = new Triangle[2];
 
             if (normal != Vector3.UnitY && normal != -Vector3.UnitY)
@@ -381,9 +383,53 @@ namespace Game1 {
                 }
             }
 
+            return [.. levelOpenGL];
+        }
+
+        public static void ImportLevelFromFile(string fileLocation, out Level level, out float[] levelGL)
+        {
+
+            level = new Level();
+            levelGL = [];
+
+            BinaryReader levelFile;
+
+            try
+            {
+                levelFile = new(File.Open(fileLocation, FileMode.Open));
+            }
+            catch
+            {
+                return;
+            }
+            while (!(levelFile.BaseStream.Position == levelFile.BaseStream.Length))
+            {
+                Object.ObjectType type = (Object.ObjectType)levelFile.ReadByte();
+                switch (type)
+                {
+                    case Object.ObjectType.None:
+                        break;
+
+                    case Object.ObjectType.Triangle:
+                        level.levelObjects.Add(new Triangle((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            [(levelFile.ReadSingle(), levelFile.ReadSingle()), (levelFile.ReadSingle(), levelFile.ReadSingle()), (levelFile.ReadSingle(), levelFile.ReadSingle())],
+                            levelFile.ReadInt32(), levelFile.ReadSingle()));
+                        break;
+                    
+                    case Object.ObjectType.Plane:
+                    
+                        break;
+
+                    case Object.ObjectType.Cube:
+                        level.levelObjects.Add(new Cube((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadInt32()));
+                        break;
+                }
+            }
             
 
-            return [..levelOpenGL];
         }
 
     }
