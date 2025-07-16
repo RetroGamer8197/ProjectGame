@@ -1,6 +1,5 @@
 ﻿namespace Game1
 {
-
     public class Launcher
     {
         public static void Main()

@@ -200,6 +200,8 @@ namespace Game1 {
 
         public override Triangle[] ConvertToTriangles()
         {
+            // OpenGL only has full support for processing triangles so any more complex shapes need to be converted down to triangles
+            
             Triangle[] returnTriangles = new Triangle[2];
 
             if (normal != Vector3.UnitY && normal != -Vector3.UnitY)
