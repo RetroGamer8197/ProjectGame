@@ -1,5 +1,5 @@
 using OpenTK.Mathematics;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Game1 {
     public class Object
@@ -337,9 +337,17 @@ namespace Game1 {
 
         public List<Object> levelObjects;
 
+        public float[] GL_Level;
+
         public Level()
         {
             levelObjects = [];
+            GL_Level = [];
+        }
+
+        public void Sync_GL_Level()
+        {
+            GL_Level = ExportToOpenGLFormat();
         }
 
         public float[] ExportToOpenGLFormat()
