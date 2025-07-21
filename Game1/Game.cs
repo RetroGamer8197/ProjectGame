@@ -269,6 +269,7 @@ namespace Game1
         {
             base.OnRenderFrame(args);
 
+            // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
             renderer.RenderFrame(player, levelStore, HUD_Vertices, WINDOW_WIDTH, WINDOW_HEIGHT);
 
             SwapBuffers();  // present the final rendered image as the front buffer so we can begin work on the next frame in the back buffer
@@ -276,6 +277,8 @@ namespace Game1
 
         protected override void OnUnload()
         {
+            // in order to not waste GPU resources, all objects using the GPU must give up their memory.
+
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
             GL.UseProgram(0);
