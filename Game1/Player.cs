@@ -1,20 +1,190 @@
 using OpenTK.Mathematics;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Game1
 {
     public class Player
     {
-        public Vector3 Position, Scale;
+        public Vector3 Position, Scale, hCollisionScale, vCollisionScale;
         public Vector3 upRotation, moveRotation;
         public float Health;
+        bool EscapeKeyState;
 
         public Player(Vector3 positionIn, Vector3 scaleIn, Vector3 moveRotationIn, float healthIn)
         {
             Position = positionIn;
             Scale = scaleIn;
+            hCollisionScale = (Scale.X, Scale.Y * 0.9f, Scale.Z);
+            vCollisionScale = (Scale.X * 0.9f, Scale.Y, Scale.Z * 0.9f);
             moveRotation = moveRotationIn;
             Health = healthIn;
             upRotation = new(0);
+        }
+
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, Level levelStore)
+        {
+            Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
+            
+            if (keyboardState.IsKeyDown(Keys.Escape))
+            {
+                game.Close();
+            }
+
+            // input handler (rotation using euler angles)
+            if (keyboardState.IsKeyDown(Keys.Right))
+            {
+                moveRotation.Y += (float)(Math.PI / 600.0);
+            }
+            if (keyboardState.IsKeyDown(Keys.Left))
+            {
+                moveRotation.Y -= (float)(Math.PI / 600.0);
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Down))
+            {
+                upRotation.X += (float)(Math.PI / 600.0);
+            }
+            if (keyboardState.IsKeyDown(Keys.Up))
+            {
+                upRotation.X -= (float)(Math.PI / 600.0);
+            }
+            
+            
+
+            if (keyboardState.IsKeyDown(Keys.Backspace))
+            {
+                if (!EscapeKeyState)
+                {
+                    EscapeKeyState = true;
+                    if (cursorState == CursorState.Normal)
+                    {
+                        cursorState = CursorState.Grabbed;
+                    }
+                    else
+                    {
+                        cursorState = CursorState.Normal;
+                    }
+
+                }
+            }
+            else if (keyboardState.IsKeyReleased(Keys.Backspace))
+            {
+                if (EscapeKeyState)
+                {
+                    EscapeKeyState = false;
+                }
+            }
+
+            if (mouseState.Delta != (0, 0) && cursorState == CursorState.Grabbed)
+            {
+                moveRotation.Y += (float)(mouseState.Delta.X * Math.PI / game.WINDOW_WIDTH / 1000);
+                upRotation.X += (float)(mouseState.Delta.Y * Math.PI / game.WINDOW_WIDTH / 1000);
+            }
+
+            if (upRotation.X < -Math.PI * 0.45f)
+            {
+                upRotation.X = -(float)(Math.PI * 0.45f);
+            } else if (upRotation.X > Math.PI * 0.45f)
+            {
+                upRotation.X = (float)(Math.PI * 0.45f);
+            }
+
+            Vector3 front3 = Matrix3.CreateRotationY(moveRotation.Y) * new Vector3(0f, 0f, -1f);
+
+            // player input handler (movement)
+
+            if (keyboardState.IsKeyDown(Keys.W))
+            {
+                tempZ += front3 * Game.speed;
+            }
+            if (keyboardState.IsKeyDown(Keys.S))
+            {
+                tempZ -= front3 * Game.speed;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.D))
+            {
+                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+            }
+            if (keyboardState.IsKeyDown(Keys.A))
+            {
+                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.E))
+            {
+                tempY.Y += Game.speed;
+            }
+            if (keyboardState.IsKeyDown(Keys.Q))
+            {
+                tempY.Y -= Game.speed;
+            }
+
+            /*if (keyboardState.IsKeyDown(Keys.Space))
+            {
+                tempY.Y += 15 * speed;
+            }*/
+
+
+            // collision detection
+            bool collidedZ = false;
+            bool collidedX = false;
+            bool collidedXZ = false;
+            bool collidedY = false;
+            bool grounded = false;
+
+            foreach (Object levelObject in levelStore.levelObjects)
+            {
+                if (levelObject.objectType != Object.ObjectType.Entity)
+                {
+                    // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
+                    collidedZ |= levelObject.CheckCollision(Position + tempZ + (new Vector3(0, 1, 0) * Game.speed), hCollisionScale);
+                    collidedX |= levelObject.CheckCollision(Position + tempX + (new Vector3(0, 1, 0) * Game.speed), hCollisionScale);
+                    collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ) + tempY, hCollisionScale);
+                    collidedY |= levelObject.CheckCollision(Position + (tempY), vCollisionScale);
+                    if (levelObject.objectType == Object.ObjectType.Cube)
+                    {
+                        Cube C = (Cube)levelObject;
+                        if (C.centre.Y < Position.Y && collidedY)
+                        {
+                            grounded = true;
+                        }
+                    }
+                }
+                else
+                {
+                    levelObject.Tick(Position, ref Health);
+                }
+
+
+            }
+            if (grounded)
+            {
+            }
+            else
+            {
+                Position.Y -= Game.speed / 5;
+            }
+
+            if (!collidedXZ)
+            {
+                Position += tempZ + tempX;
+            }
+            else if (!collidedZ)
+            {
+                Position += tempZ;
+                if (collidedX)
+                {
+                    Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                }
+            }
+            else if (!collidedX)
+            {
+                Position += tempX;
+            }
         }
 
         /*

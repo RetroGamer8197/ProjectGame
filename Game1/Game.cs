@@ -1,10 +1,6 @@
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using OpenTK.Mathematics;
-using OpenTK.Audio.OpenAL;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Game1
 {
@@ -17,13 +13,11 @@ namespace Game1
         public Shader levelShader;
         public Texture levelTextureAtlas, hudAtlas, entityAtlas;
 
-        private int VertexBufferObject;
-        private int VertexArrayObject;
-
         Player player;
         
 
         private Level levelStore;
+        private Level HUD;
         private readonly float[] HUD_Vertices = [
             // health indicator
             -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
@@ -61,6 +55,7 @@ namespace Game1
 
         public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
         {
+            // caps framerate to 480 FPS
             UpdateFrequency = 480;
 
         }
@@ -126,6 +121,15 @@ namespace Game1
 
             levelStore.Sync_GL_Level();
 
+            HUD = new();
+
+            // crosshair
+            HUD.levelObjects.Add(new Plane((0, 0, 0), (0, 0, 1), 0.0078125f, 0.0625f, 1, 1.0f));
+            HUD.levelObjects.Add(new Plane((0, 0, 0), (0, 0, 1), 0.0625f, 0.0078125f, 1, 1.0f));
+
+            // crosshair
+            HUD.levelObjects.Add(new Plane((-0.75f, -0.75f, 0), (0, 0, 1), 0.25f, 0.25f, 0, 1.0f));
+
             GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
         }
 
@@ -133,136 +137,11 @@ namespace Game1
         {
             base.OnUpdateFrame(e);
 
-            Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
+            CursorState temp_cstate = CursorState;
 
-            if (KeyboardState.IsKeyDown(Keys.Escape))
-            {
-                Close();
-            }
+            player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, levelStore);
 
-            // input handler (rotation using euler angles)
-            if (KeyboardState.IsKeyDown(Keys.Right))
-            {
-                player.moveRotation.Y += (float)(Math.PI / 600.0);
-            }
-            if (KeyboardState.IsKeyDown(Keys.Left))
-            {
-                player.moveRotation.Y -= (float)(Math.PI / 600.0);
-            }
-
-            if (KeyboardState.IsKeyDown(Keys.Down))
-            {
-                player.upRotation.X += (float)(Math.PI / 600.0);
-                if (player.upRotation.X > Math.PI * 0.45f)
-                {
-                    player.upRotation.X = (float)(Math.PI * 0.45f);
-                }
-            }
-            if (KeyboardState.IsKeyDown(Keys.Up))
-            {
-                player.upRotation.X -= (float)(Math.PI / 600.0);
-                if (player.upRotation.X < -Math.PI * 0.45f)
-                {
-                    player.upRotation.X = -(float)(Math.PI * 0.45f);
-                }
-            }
-
-            Vector3 front3 = Matrix3.CreateRotationY(player.moveRotation.Y) * new Vector3(0f, 0f, -1f);
-
-            // player input handler (movement)
-
-            if (KeyboardState.IsKeyDown(Keys.W))
-            {
-                tempZ += front3 * speed;
-            }
-            if (KeyboardState.IsKeyDown(Keys.S))
-            {
-                tempZ -= front3 * speed;
-            }
-
-            if (KeyboardState.IsKeyDown(Keys.D))
-            {
-                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * speed;
-            }
-            if (KeyboardState.IsKeyDown(Keys.A))
-            {
-                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * speed;
-            }
-
-            if (KeyboardState.IsKeyDown(Keys.E))
-            {
-                tempY.Y += speed;
-            }
-            if (KeyboardState.IsKeyDown(Keys.Q))
-            {
-                tempY.Y -= speed;
-            }
-
-            /*if (KeyboardState.IsKeyDown(Keys.Space))
-            {
-                tempY.Y += 15 * speed;
-            }*/
-
-
-            // collision detection
-            bool collidedZ = false;
-            bool collidedX = false;
-            bool collidedXZ = false;
-            bool collidedY = false;
-            bool grounded = false;
-
-            foreach (Object levelObject in levelStore.levelObjects)
-            {
-                if (levelObject.objectType != Object.ObjectType.Entity)
-                {
-                    // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
-                    collidedZ |= levelObject.CheckCollision(player.Position + tempZ + (new Vector3(0, 1, 0) * speed), player.Scale);
-                    collidedX |= levelObject.CheckCollision(player.Position + tempX + (new Vector3(0, 1, 0) * speed), player.Scale);
-                    collidedXZ |= levelObject.CheckCollision(player.Position + (tempX + tempZ) + tempY, player.Scale);
-                    collidedY |= levelObject.CheckCollision(player.Position + (tempY), player.Scale);
-                    if (levelObject.objectType == Object.ObjectType.Cube)
-                    {
-                        Cube C = (Cube)levelObject;
-                        if (C.centre.Y < player.Position.Y && collidedY)
-                        {
-                            grounded = true;
-                            player.Position.Y = C.centre.Y + (player.Scale.Y / 2) + (C.scaleY / 2) + (speed / 2);
-                        }
-                    }
-                }
-                else
-                {
-                    levelObject.Tick(player.Position, ref player.Health);
-                }
-
-
-            }
-            if (grounded)
-            {
-            }
-            else
-            {
-                player.Position.Y -= speed / 5;
-            }
-
-            if (!collidedXZ)
-            {
-                player.Position += tempZ + tempX;
-            }
-            else if (!collidedZ)
-            {
-                player.Position += tempZ;
-                if (collidedX)
-                {
-                    player.Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * speed;
-                }
-            }
-            else if (!collidedX)
-            {
-                player.Position += tempX;
-            }
-
-
+            CursorState = temp_cstate;
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -270,7 +149,7 @@ namespace Game1
             base.OnRenderFrame(args);
 
             // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
-            renderer.RenderFrame(player, levelStore, HUD_Vertices, WINDOW_WIDTH, WINDOW_HEIGHT);
+            renderer.RenderFrame(player, levelStore, HUD, WINDOW_WIDTH, WINDOW_HEIGHT);
 
             SwapBuffers();  // present the final rendered image as the front buffer so we can begin work on the next frame in the back buffer
         }
@@ -288,5 +167,4 @@ namespace Game1
             base.OnUnload();
         }
     }
-
 }
