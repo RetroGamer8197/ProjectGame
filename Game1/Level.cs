@@ -1,5 +1,4 @@
 using OpenTK.Mathematics;
-using OpenTK.Graphics.OpenGL4;
 
 namespace Game1 {
     public class Object

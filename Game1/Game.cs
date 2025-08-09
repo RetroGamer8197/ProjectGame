@@ -62,14 +62,15 @@ namespace Game1
 
         protected override void OnLoad()
         {
-            /// This routine sets up the shaders, textures and buffers for the game
-            /// 
+            /// This routine sets up the shaders, textures, level data and buffers for the game
 
             base.OnLoad();
 
             renderer = new();
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
+
+            // --- Level ---
             levelStore = new();
             
             // room 1 decal
@@ -107,8 +108,6 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((-1.25f, 0, 4.5f), 0.5f, 1.0f, 2.0f, 6));
             levelStore.levelObjects.Add(new Cube((1.25f, 0, 4.5f), 0.5f, 1.0f, 2.0f, 6));
 
-            //levelStore.levelObjects.Add(new Cube((0, 0, 5.75f), 2.0f, 1.0f, 0.5f, 4));
-
             // huge room
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 10.5f), 10.0f, 0.5f, 10.0f, 3));
 
@@ -121,13 +120,15 @@ namespace Game1
 
             levelStore.Sync_GL_Level();
 
+
+            // --- HUD ---
             HUD = new();
 
             // crosshair
             HUD.levelObjects.Add(new Plane((0, 0, 0), (0, 0, 1), 0.0078125f, 0.0625f, 1, 1.0f));
             HUD.levelObjects.Add(new Plane((0, 0, 0), (0, 0, 1), 0.0625f, 0.0078125f, 1, 1.0f));
 
-            // crosshair
+            // health
             HUD.levelObjects.Add(new Plane((-0.75f, -0.75f, 0), (0, 0, 1), 0.25f, 0.25f, 0, 1.0f));
 
             GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
