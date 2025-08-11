@@ -22,7 +22,7 @@ namespace Game1
             upRotation = new(0);
         }
 
-        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, Level levelStore)
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, Level levelStore, float deltaTime)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             
@@ -96,29 +96,29 @@ namespace Game1
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
-                tempZ += front3 * Game.speed;
+                tempZ += front3 * Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.S))
             {
-                tempZ -= front3 * Game.speed;
+                tempZ -= front3 * Game.speed * deltaTime;
             }
 
             if (keyboardState.IsKeyDown(Keys.D))
             {
-                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.A))
             {
-                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
             }
 
             if (keyboardState.IsKeyDown(Keys.E))
             {
-                tempY.Y += Game.speed;
+                tempY.Y += Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.Q))
             {
-                tempY.Y -= Game.speed;
+                tempY.Y -= Game.speed * deltaTime;
             }
 
             /*if (keyboardState.IsKeyDown(Keys.Space))
@@ -139,8 +139,8 @@ namespace Game1
                 if (levelObject.objectType != Object.ObjectType.Entity)
                 {
                     // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
-                    collidedZ |= levelObject.CheckCollision(Position + tempZ + (new Vector3(0, 1, 0) * Game.speed), hCollisionScale);
-                    collidedX |= levelObject.CheckCollision(Position + tempX + (new Vector3(0, 1, 0) * Game.speed), hCollisionScale);
+                    collidedZ |= levelObject.CheckCollision(Position + tempZ + (new Vector3(0, 1, 0) * Game.speed * deltaTime), hCollisionScale);
+                    collidedX |= levelObject.CheckCollision(Position + tempX + (new Vector3(0, 1, 0) * Game.speed * deltaTime), hCollisionScale);
                     collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ) + tempY, hCollisionScale);
                     collidedY |= levelObject.CheckCollision(Position + (tempY), vCollisionScale);
                     if (levelObject.objectType == Object.ObjectType.Cube)
@@ -154,7 +154,7 @@ namespace Game1
                 }
                 else
                 {
-                    levelObject.Tick(Position, ref Health);
+                    levelObject.Tick(Position, ref Health, deltaTime);
                 }
 
 
@@ -164,7 +164,7 @@ namespace Game1
             }
             else
             {
-                Position.Y -= Game.speed / 5;
+                Position.Y -= Game.speed * deltaTime/ 5;
             }
 
             if (!collidedXZ)
@@ -176,7 +176,7 @@ namespace Game1
                 Position += tempZ;
                 if (collidedX)
                 {
-                    Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                    Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
                 }
             }
             else if (!collidedX)
