@@ -11,7 +11,7 @@ namespace Game1
 
     public class Game : GameWindow
     {
-        public const float speed = 1/ 240f;
+        public const float speed = 2;
         public float WINDOW_WIDTH = 1.6f/0.9f, WINDOW_HEIGHT = 1.0f;
 
         public Shader levelShader;
@@ -133,6 +133,8 @@ namespace Game1
         {
             base.OnUpdateFrame(e);
 
+            float frameSpeed = speed * (float)e.Time;
+
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
 
             if (KeyboardState.IsKeyDown(Keys.Escape))
@@ -173,29 +175,29 @@ namespace Game1
 
             if (KeyboardState.IsKeyDown(Keys.W))
             {
-                tempZ += front3 * speed;
+                tempZ += front3 * frameSpeed;
             }
             if (KeyboardState.IsKeyDown(Keys.S))
             {
-                tempZ -= front3 * speed;
+                tempZ -= front3 * frameSpeed;
             }
 
             if (KeyboardState.IsKeyDown(Keys.D))
             {
-                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * speed;
+                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * frameSpeed;
             }
             if (KeyboardState.IsKeyDown(Keys.A))
             {
-                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * speed;
+                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * frameSpeed;
             }
 
             if (KeyboardState.IsKeyDown(Keys.E))
             {
-                tempY.Y += speed;
+                tempY.Y += frameSpeed;
             }
             if (KeyboardState.IsKeyDown(Keys.Q))
             {
-                tempY.Y -= speed;
+                tempY.Y -= frameSpeed;
             }
 
             /*if (KeyboardState.IsKeyDown(Keys.Space))
@@ -216,8 +218,8 @@ namespace Game1
                 if (levelObject.objectType != Object.ObjectType.Entity)
                 {
                     // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
-                    collidedZ |= levelObject.CheckCollision(player.Position + tempZ + (new Vector3(0, 1, 0) * speed), player.Scale);
-                    collidedX |= levelObject.CheckCollision(player.Position + tempX + (new Vector3(0, 1, 0) * speed), player.Scale);
+                    collidedZ |= levelObject.CheckCollision(player.Position + tempZ + (new Vector3(0, 1, 0) * frameSpeed), player.Scale);
+                    collidedX |= levelObject.CheckCollision(player.Position + tempX + (new Vector3(0, 1, 0) * frameSpeed), player.Scale);
                     collidedXZ |= levelObject.CheckCollision(player.Position + (tempX + tempZ) + tempY, player.Scale);
                     collidedY |= levelObject.CheckCollision(player.Position + (tempY), player.Scale);
                     if (levelObject.objectType == Object.ObjectType.Cube)
@@ -226,13 +228,13 @@ namespace Game1
                         if (C.centre.Y < player.Position.Y && collidedY)
                         {
                             grounded = true;
-                            player.Position.Y = C.centre.Y + (player.Scale.Y / 2) + (C.scaleY / 2) + (speed / 2);
+                            player.Position.Y = C.centre.Y + (player.Scale.Y / 2) + (C.scaleY / 2) + (frameSpeed / 2);
                         }
                     }
                 }
                 else
                 {
-                    levelObject.Tick(player.Position, ref player.Health);
+                    levelObject.Tick(player.Position, ref player.Health, (float)e.Time);
                 }
 
 
@@ -242,7 +244,7 @@ namespace Game1
             }
             else
             {
-                player.Position.Y -= speed / 5;
+                player.Position.Y -= frameSpeed / 5;
             }
 
             if (!collidedXZ)
@@ -254,7 +256,7 @@ namespace Game1
                 player.Position += tempZ;
                 if (collidedX)
                 {
-                    player.Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * speed;
+                    player.Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * frameSpeed;
                 }
             }
             else if (!collidedX)

@@ -45,7 +45,7 @@ namespace Game1
 
     public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
     {
-        public override void Tick(Vector3 playerPosition, ref float health)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
 
             /*if (Position.Z > 5)
@@ -78,7 +78,7 @@ namespace Game1
                 directionVector.Normalize();
             }
 
-            Position += directionVector * Game.speed / 4;
+            Position += directionVector * Game.speed * deltaTime / 4;
 
             if (float.IsNaN(Position.X))
             {
@@ -93,7 +93,7 @@ namespace Game1
 
     public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
     {
-        public override void Tick(Vector3 playerPosition, ref float health)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
             health += healthChange;
         }
