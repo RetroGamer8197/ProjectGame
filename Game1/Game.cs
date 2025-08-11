@@ -7,7 +7,7 @@ namespace Game1
 
     public class Game : GameWindow
     {
-        public const float speed = 1/ 240f;
+        public const float speed = 2;
         public float WINDOW_WIDTH = 1.6f/0.9f, WINDOW_HEIGHT = 1.0f;
 
         public Shader levelShader;
@@ -137,7 +137,7 @@ namespace Game1
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
-
+            
             CursorState temp_cstate = CursorState;
 
             player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, levelStore);

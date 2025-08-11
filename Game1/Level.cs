@@ -19,7 +19,7 @@ namespace Game1 {
             return false;
         }
 
-        public virtual void Tick(Vector3 playerPosition, ref float health)
+        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
             
         }
@@ -265,7 +265,7 @@ namespace Game1 {
                 return false;
             }
 
-            if (distanceToPlane < Game.speed * 60)
+            if (distanceToPlane < Game.speed / 40)
             {
                 Vector3 PointOnPlane;
                 if (Math.Sign(Vector4.Dot(new Vector4(normal, d), new Vector4(centre, 1.0f))) == Math.Sign(Vector4.Dot(new Vector4(normal, d), new Vector4(coordinate, 1.0f))))
