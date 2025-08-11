@@ -10,7 +10,9 @@ namespace Game1
         public Shader levelShader;
         private Texture levelTextureAtlas, hudAtlas, entityAtlas;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Renderer()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             Init();
         }
@@ -51,7 +53,7 @@ namespace Game1
             GL.Enable(EnableCap.DepthTest);
         }
 
-        public void RenderFrame(Player player, Level levelStore, float[] HUD_Vertices, float WINDOW_WIDTH, float WINDOW_HEIGHT)
+        public void RenderFrame(Player player, Level levelStore, Level HUD, float WINDOW_WIDTH, float WINDOW_HEIGHT)
         {
             GL.Enable(EnableCap.DepthTest);     // when drawing level geometry, we need the depth buffer enabled so that the triangles are drawn in the correct order 
 
@@ -122,7 +124,9 @@ namespace Game1
 
             GL.Disable(EnableCap.DepthTest);    // disable the depth test to prevent the level geometry from obscuring the HUD
 
-            GL.BufferData(BufferTarget.ArrayBuffer, HUD_Vertices.Length * sizeof(float), HUD_Vertices, BufferUsageHint.StreamDraw); // buffer the HUD vertex data to the GPU
+            HUD.Sync_GL_Level();
+
+            GL.BufferData(BufferTarget.ArrayBuffer, HUD.GL_Level.Length * sizeof(float), HUD.GL_Level, BufferUsageHint.StreamDraw); // buffer the HUD vertex data to the GPU
 
             // Change texture atlas to the correct atlas for the HUD
             hudAtlas.Use(TextureUnit.Texture1);
@@ -130,7 +134,7 @@ namespace Game1
 
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);  // we can reuse the level shader by adding all relevant parameters in such as way that the vertex shader applies no transformations and the fragment shader applies no shading (shaded dir = 1.0f)
 
-            GL.DrawArrays(PrimitiveType.Triangles, 0, HUD_Vertices.Length / 6); // finally, we can tell the GPU to draw the HUD
+            GL.DrawArrays(PrimitiveType.Triangles, 0, HUD.GL_Level.Length / 6); // finally, we can tell the GPU to draw the HUD
         }
 
         public void Dispose()
