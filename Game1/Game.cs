@@ -140,7 +140,7 @@ namespace Game1
             
             CursorState temp_cstate = CursorState;
 
-            player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, levelStore, (float)e.Time);
+            player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time);
 
             CursorState = temp_cstate;
         }

@@ -89,6 +89,29 @@ namespace Game1
                 Position = origin;
             }
         }
+
+        public override void HandleClickedOn()
+        {
+            base.HandleClickedOn();
+
+            Position = origin;
+        }
+
+        public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
+        {
+            float distanceAllowedXZ = new Vector2(scale.X / 2, scale.X / 2).LengthSquared;
+            float distanceAllowedY = scale.Y;
+            Vector3 VectorDistanceFrom = Position - input;
+            distanceFrom = VectorDistanceFrom.LengthSquared;
+            if (new Vector2(VectorDistanceFrom.X, VectorDistanceFrom.Z).LengthSquared < distanceAllowedXZ && VectorDistanceFrom.Y < distanceAllowedY)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
