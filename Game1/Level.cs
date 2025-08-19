@@ -5,7 +5,7 @@ namespace Game1 {
     {
         public enum ObjectType
         {
-            None = 0, Triangle= 1, Plane = 2, Entity = 3, Cube = 4
+            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4
         }
         public ObjectType objectType;
 
@@ -19,9 +19,20 @@ namespace Game1 {
             return false;
         }
 
-        public virtual void Tick(Vector3 playerPosition, ref float health)
+        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
-            
+
+        }
+
+        public virtual void HandleClickedOn()
+        {
+
+        }
+        
+        public virtual bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
+        {
+            distanceFrom = float.MaxValue;
+            return false;
         }
 
     }
@@ -142,6 +153,19 @@ namespace Game1 {
             }
 
             return false;
+        }
+
+        public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
+        {
+            bool isCollision =CheckCollision(input, new(stepScale));
+
+            if (isCollision) {
+                distanceFrom = 0;
+            } else {
+                distanceFrom = float.MaxValue;
+            }
+
+            return isCollision;
         }
 
         public override Triangle[] ConvertToTriangles()
@@ -265,7 +289,7 @@ namespace Game1 {
                 return false;
             }
 
-            if (distanceToPlane < Game.speed * 60)
+            if (distanceToPlane < Game.speed / 40)
             {
                 Vector3 PointOnPlane;
                 if (Math.Sign(Vector4.Dot(new Vector4(normal, d), new Vector4(centre, 1.0f))) == Math.Sign(Vector4.Dot(new Vector4(normal, d), new Vector4(coordinate, 1.0f))))

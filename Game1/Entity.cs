@@ -45,7 +45,7 @@ namespace Game1
 
     public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
     {
-        public override void Tick(Vector3 playerPosition, ref float health)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
 
             /*if (Position.Z > 5)
@@ -78,7 +78,7 @@ namespace Game1
                 directionVector.Normalize();
             }
 
-            Position += directionVector * Game.speed / 4;
+            Position += directionVector * Game.speed * deltaTime / 4;
 
             if (float.IsNaN(Position.X))
             {
@@ -89,11 +89,34 @@ namespace Game1
                 Position = origin;
             }
         }
+
+        public override void HandleClickedOn()
+        {
+            base.HandleClickedOn();
+
+            Position = origin;
+        }
+
+        public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
+        {
+            float distanceAllowedXZ = new Vector2(scale.X / 2, scale.X / 2).LengthSquared;
+            float distanceAllowedY = scale.Y;
+            Vector3 VectorDistanceFrom = Position - input;
+            distanceFrom = VectorDistanceFrom.LengthSquared;
+            if (new Vector2(VectorDistanceFrom.X, VectorDistanceFrom.Z).LengthSquared < distanceAllowedXZ && VectorDistanceFrom.Y < distanceAllowedY)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
     {
-        public override void Tick(Vector3 playerPosition, ref float health)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
             health += healthChange;
         }

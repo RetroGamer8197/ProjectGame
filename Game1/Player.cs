@@ -22,10 +22,10 @@ namespace Game1
             upRotation = new(0);
         }
 
-        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, Level levelStore)
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
-            
+
             if (keyboardState.IsKeyDown(Keys.Escape))
             {
                 game.Close();
@@ -49,8 +49,8 @@ namespace Game1
             {
                 upRotation.X -= (float)(Math.PI / 600.0);
             }
-            
-            
+
+
 
             if (keyboardState.IsKeyDown(Keys.Backspace))
             {
@@ -82,10 +82,16 @@ namespace Game1
                 upRotation.X += (float)(mouseState.Delta.Y * Math.PI / game.WINDOW_WIDTH / 1000);
             }
 
+            if (mouseState.IsButtonDown(MouseButton.Button1))
+            {
+                RaycastToObject(ref levelStore);
+            }
+
             if (upRotation.X < -Math.PI * 0.45f)
             {
                 upRotation.X = -(float)(Math.PI * 0.45f);
-            } else if (upRotation.X > Math.PI * 0.45f)
+            }
+            else if (upRotation.X > Math.PI * 0.45f)
             {
                 upRotation.X = (float)(Math.PI * 0.45f);
             }
@@ -96,29 +102,29 @@ namespace Game1
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
-                tempZ += front3 * Game.speed;
+                tempZ += front3 * Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.S))
             {
-                tempZ -= front3 * Game.speed;
+                tempZ -= front3 * Game.speed * deltaTime;
             }
 
             if (keyboardState.IsKeyDown(Keys.D))
             {
-                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                tempX += Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.A))
             {
-                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
             }
 
             if (keyboardState.IsKeyDown(Keys.E))
             {
-                tempY.Y += Game.speed;
+                tempY.Y += Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.Q))
             {
-                tempY.Y -= Game.speed;
+                tempY.Y -= Game.speed * deltaTime;
             }
 
             /*if (keyboardState.IsKeyDown(Keys.Space))
@@ -139,10 +145,10 @@ namespace Game1
                 if (levelObject.objectType != Object.ObjectType.Entity)
                 {
                     // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
-                    collidedZ |= levelObject.CheckCollision(Position + tempZ + (new Vector3(0, 1, 0) * Game.speed), hCollisionScale);
-                    collidedX |= levelObject.CheckCollision(Position + tempX + (new Vector3(0, 1, 0) * Game.speed), hCollisionScale);
-                    collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ) + tempY, hCollisionScale);
-                    collidedY |= levelObject.CheckCollision(Position + (tempY), vCollisionScale);
+                    collidedZ |= levelObject.CheckCollision(Position + (Vector3.UnitZ * (tempX.Z + tempZ.Z)), hCollisionScale);
+                    collidedX |= levelObject.CheckCollision(Position + (Vector3.UnitX * (tempX.X + tempZ.X)), hCollisionScale);
+                    collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ), hCollisionScale);
+                    collidedY |= levelObject.CheckCollision(Position + tempX + tempZ + tempY, vCollisionScale);
                     if (levelObject.objectType == Object.ObjectType.Cube)
                     {
                         Cube C = (Cube)levelObject;
@@ -154,7 +160,7 @@ namespace Game1
                 }
                 else
                 {
-                    levelObject.Tick(Position, ref Health);
+                    levelObject.Tick(Position, ref Health, deltaTime);
                 }
 
 
@@ -164,25 +170,134 @@ namespace Game1
             }
             else
             {
-                Position.Y -= Game.speed / 5;
+                Position.Y -= Game.speed * deltaTime / 5;
             }
 
-            if (!collidedXZ)
+            if (!collidedXZ && !collidedX && !collidedZ)
             {
-                Position += tempZ + tempX;
+
             }
-            else if (!collidedZ)
+            else if (!collidedZ && collidedX)
             {
-                Position += tempZ;
-                if (collidedX)
+                tempX.X = 0;
+                tempZ.X = 0;
+            }
+            else if (!collidedX && collidedZ)
+            {
+                tempX.Z = 0;
+                tempZ.Z = 0;
+            }
+            else
+            {
+                tempX = (0, 0, 0);
+                tempZ = (0, 0, 0);
+            }
+
+            Position += tempZ + tempX;
+        }
+
+        public void RaycastToObject(ref Level level)
+        {
+            float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
+            float stepScale = 1 / 100f;
+            bool validRaycast = false;
+            Vector3 direction = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(upRotation + moveRotation)) * -Vector3.UnitZ * stepScale;
+            Vector3 CameraPosition = Position + (Vector3.UnitY * Scale.Y / 2);
+            float length;
+            float stepX = float.Sign(direction.X) * stepScale, stepY = float.Sign(direction.Y) * stepScale, stepZ = float.Sign(direction.Z) * stepScale;
+            Vector3 checkPosition = FloorPosition(CameraPosition, stepScale);
+            Vector3 RealPosition = CameraPosition;
+            int closestObject;
+            float closestDistance, currentDistance;
+
+            float modulus = 1;
+
+            tDeltaX = Math.Abs(stepScale / direction.X);
+            tDeltaY = Math.Abs(stepScale / direction.Y);
+            tDeltaZ = Math.Abs(stepScale / direction.Z);
+
+            if (checkPosition.X - RealPosition.X == 0 && checkPosition.Y - RealPosition.Y == 0 && checkPosition.Y - RealPosition.Y == 0)
+            {
+                tMaxX = tDeltaX;
+                tMaxY = tDeltaY;
+                tMaxZ = tDeltaZ;
+            }
+            else
+            {
+                tMaxX = Math.Abs((checkPosition.X + stepX - RealPosition.X) % modulus / direction.X);
+                tMaxY = Math.Abs((checkPosition.Y + stepY - RealPosition.Y) % modulus / direction.Y);
+                tMaxZ = Math.Abs((checkPosition.Z + stepZ - RealPosition.Z) % modulus / direction.Z);
+            }
+
+            do
+            {
+                if (tMaxX < tMaxY)
                 {
-                    Position -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed;
+                    if (tMaxX < tMaxZ)
+                    {
+                        tMaxX += tDeltaX;
+                        checkPosition.X += stepX;
+                    }
+                    else
+                    {
+                        tMaxZ += tDeltaZ;
+                        checkPosition.Z += stepZ;
+                    }
                 }
-            }
-            else if (!collidedX)
+                else
+                {
+                    if (tMaxY < tMaxZ)
+                    {
+                        tMaxY += tDeltaY;
+                        checkPosition.Y += stepY;
+                    }
+                    else
+                    {
+                        tMaxZ += tDeltaZ;
+                        checkPosition.Z += stepZ;
+                    }
+                }
+
+                closestObject = -1;
+                closestDistance = float.MaxValue;
+                for (int i = 0; i < level.levelObjects.Count; i++)
+                {
+                    if (level.levelObjects[i].CheckClickedCollision(checkPosition, stepScale, out currentDistance))
+                    {
+                        if (currentDistance < closestDistance)
+                        {
+                            closestObject = i;
+                        }
+                    }
+                }
+
+                if (closestObject != -1)
+                {
+                    validRaycast = true;
+                    level.levelObjects[closestObject].HandleClickedOn();
+                }
+
+                
+                length = (float.Min(float.Min(tMaxX, tMaxY), tMaxZ) * direction).Length;
+
+            } while (!validRaycast && length <= 10);
+        }
+        
+        public static Vector3 FloorPosition(Vector3 position, float scale) {
+
+            position /= scale;
+
+            if (position.X < 0)
             {
-                Position += tempX;
+                position.X--;
             }
+            if (position.Z < 0)
+            {
+                position.Z--;
+            }
+
+            return position.Floor() * scale;
+
         }
 
         /*
