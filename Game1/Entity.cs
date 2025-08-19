@@ -6,14 +6,20 @@ namespace Game1
 
     public class Entity : Object
     {
+        public enum EntityType
+        {
+            None, Enemy, Item
+        }
         public Vector3 Position;
         public Vector3 origin;
         public Vector2 scale;
         public int textureIndex, healthChange;
         public bool pathfinding;
-        public Entity(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn)
+        public EntityType entityType;
+        public Entity(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn, EntityType entityTypeIn)
         {
             objectType = ObjectType.Entity;
+            entityType  = entityTypeIn;
             Position = position;
             scale = scaleIn;
             textureIndex = textureIndexIn;
@@ -43,7 +49,7 @@ namespace Game1
 
     }
 
-    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
+    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
     {
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
@@ -57,7 +63,6 @@ namespace Game1
                 direction = 1;
             }
             Position += direction * Vector3.UnitZ * Game.speed * 0.25f;*/
-            Vector3 PositionOld = Position;
 
             Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
 
@@ -114,7 +119,7 @@ namespace Game1
         }
     }
 
-    public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn)
+    public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Item)
     {
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {

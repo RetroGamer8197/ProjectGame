@@ -20,4 +20,8 @@
     <None Include="Textures/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Levels/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

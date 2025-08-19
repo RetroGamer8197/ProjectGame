@@ -69,9 +69,9 @@ namespace Game1
             renderer = new();
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
-
             // --- Level ---
-            levelStore = new();
+            Level.ImportLevelFromFile("Levels/level1.lvl", out levelStore);
+            /*levelStore = new();
             
             // room 1 decal
             levelStore.levelObjects.Add(new Plane((0.99f, 0, 0), (-1.0f, 0, 0), 0.5f, 0.5f, 4, 0.8f));
@@ -116,9 +116,11 @@ namespace Game1
             levelStore.levelObjects.Add(new Enemy((5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, false));
             levelStore.levelObjects.Add(new Enemy((-5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, false));
 
-            levelStore.levelObjects.Add(new Item((0.0f, -0.25f, 8.0f), (0.5f, 0.5f), 2, +10, false));
+            levelStore.levelObjects.Add(new Item((0.0f, -0.25f, 8.0f), (0.5f, 0.5f), 2, +10, false));*/
 
             levelStore.Sync_GL_Level();
+
+            //levelStore.ExportToFile("Levels/level1.lvl");
 
 
             // --- HUD ---

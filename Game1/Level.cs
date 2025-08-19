@@ -42,7 +42,7 @@ namespace Game1 {
         public Vector2[] textureCoordinates;
         public float directionIndex;
 
-        public Triangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector2[] textureCoordinatesIn, int textureIndex, float directionshade)
+        public Triangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector2[] textureCoordinatesIn, float directionshade)
         {
             objectType = ObjectType.Triangle;
             coordinates = [v1, v2, v3];
@@ -72,7 +72,7 @@ namespace Game1 {
             textureIndex = levelReader.ReadByte();
             directionIndex = levelReader.ReadSingle();
 
-            triangleOutput = new(v1, v2, v3, [tc1, tc2, tc3], textureIndex, directionIndex);
+            triangleOutput = new(v1, v2, v3, [tc1, tc2, tc3], directionIndex);
         }
     }
 
@@ -81,7 +81,7 @@ namespace Game1 {
         public float scaleX, scaleY, scaleZ;
         public Vector3 centre;
         readonly Vector3[] vertexCoordinates;
-        readonly int textureIndex;
+        public readonly int textureIndex;
         // vertex indices references the cube coordinates that are generated in the initialiser
         readonly int[] vertexindices = [
             0, 1, 2, 1, 2, 3,       // negative x face
@@ -143,7 +143,7 @@ namespace Game1 {
             // this checks if any vertex of the player's hitbox (an AABB defined by input and player scale) lies within the bounds of the AABB of the cube
             if (centre.X + scaleX / 2 > input.X - (playerScale.X / 2) && centre.X - scaleX / 2 < input.X + (playerScale.X / 2))
             {
-                if (centre. Y + scaleY / 2 > input.Y - (playerScale.Y / 2) && centre.Y - scaleY / 2 < input.Y + (playerScale.Y / 2))
+                if (centre.Y + scaleY / 2 > input.Y - (playerScale.Y / 2) && centre.Y - scaleY / 2 < input.Y + (playerScale.Y / 2))
                 {
                     if (centre.Z + scaleZ / 2 > input.Z - (playerScale.Z / 2) && centre.Z - scaleZ / 2 < input.Z + (playerScale.Z / 2))
                     {
@@ -176,7 +176,7 @@ namespace Game1 {
 
             for (int i = 0; i < vertexindices.Length / 3; i++)
             {
-                Triangle triTemp = new(vertexCoordinates[vertexindices[i * 3]], vertexCoordinates[vertexindices[(i * 3) + 1]], vertexCoordinates[vertexindices[(i * 3) + 2]], [textureCoordinates[textureCoordIndices[(i * 3) + 0]], textureCoordinates[textureCoordIndices[(i * 3) + 1]], textureCoordinates[textureCoordIndices[(i * 3) + 2]]], 0, directions[i / 2]);
+                Triangle triTemp = new(vertexCoordinates[vertexindices[i * 3]], vertexCoordinates[vertexindices[(i * 3) + 1]], vertexCoordinates[vertexindices[(i * 3) + 2]], [textureCoordinates[textureCoordIndices[(i * 3) + 0]], textureCoordinates[textureCoordIndices[(i * 3) + 1]], textureCoordinates[textureCoordIndices[(i * 3) + 2]]], directions[i / 2]);
                 TriangleList.Add(triTemp);
             }
 
@@ -186,9 +186,9 @@ namespace Game1 {
 
     public class Plane : Object
     {
-        private Vector3 centre, normal;
-        private readonly float width, height;
-        private readonly int textureIndex;
+        public Vector3 centre, normal;
+        public readonly float width, height;
+        public readonly int textureIndex;
         public readonly float directionIndex;
 
         Vector3 UnitRight, UnitUp;
@@ -252,8 +252,8 @@ namespace Game1 {
                 new((1 + (textureIndex % 4)) * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
             ];
 
-            returnTriangles[0] = new(RectangleCoordinates[0], RectangleCoordinates[1], RectangleCoordinates[2], TextureCoordinates[0..3], textureIndex, directionIndex);
-            returnTriangles[1] = new(RectangleCoordinates[0], RectangleCoordinates[2], RectangleCoordinates[3], [TextureCoordinates[0], TextureCoordinates[2], TextureCoordinates[3]], textureIndex, directionIndex);
+            returnTriangles[0] = new(RectangleCoordinates[0], RectangleCoordinates[1], RectangleCoordinates[2], TextureCoordinates[0..3], directionIndex);
+            returnTriangles[1] = new(RectangleCoordinates[0], RectangleCoordinates[2], RectangleCoordinates[3], [TextureCoordinates[0], TextureCoordinates[2], TextureCoordinates[3]], directionIndex);
 
             return returnTriangles;
         }
@@ -335,9 +335,10 @@ namespace Game1 {
         }
     }
 
-    
 
-    public class CustomVector3Extension {
+
+    public class CustomVector3Extension
+    {
 
         public static float CalculateArea(Vector3 p1, Vector3 p2, Vector3 p3)
         {
@@ -351,7 +352,14 @@ namespace Game1 {
 
             return (float)(0.5 * Math.Sin(angle) * length1 * length2);
 
-        } 
+        }
+
+        public static void WriteVector3ToFile(Vector3 vectorIn, ref BinaryWriter file)
+        {
+            file.Write(vectorIn.X);
+            file.Write(vectorIn.Y);
+            file.Write(vectorIn.Z);
+        }
 
     }
 
@@ -417,11 +425,10 @@ namespace Game1 {
             return [.. levelOpenGL];
         }
 
-        public static void ImportLevelFromFile(string fileLocation, out Level level, out float[] levelGL)
+        public static void ImportLevelFromFile(string fileLocation, out Level level)
         {
 
             level = new Level();
-            levelGL = [];
 
             BinaryReader levelFile;
 
@@ -446,21 +453,124 @@ namespace Game1 {
                             (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
                             (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
                             [(levelFile.ReadSingle(), levelFile.ReadSingle()), (levelFile.ReadSingle(), levelFile.ReadSingle()), (levelFile.ReadSingle(), levelFile.ReadSingle())],
-                            levelFile.ReadInt32(), levelFile.ReadSingle()));
+                            levelFile.ReadSingle()));
                         break;
-                    
+
                     case Object.ObjectType.Plane:
-                    
+                        level.levelObjects.Add(new Plane((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadSingle(),
+                            levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadSingle()));
                         break;
 
                     case Object.ObjectType.Cube:
                         level.levelObjects.Add(new Cube((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
                             levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadInt32()));
                         break;
+
+                    case Object.ObjectType.Entity:
+                        Entity.EntityType entityType = (Entity.EntityType)levelFile.ReadByte();
+                        switch (entityType)
+                        {
+
+                            case Entity.EntityType.None:
+                                level.levelObjects.Add(new Entity((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), Entity.EntityType.None));
+                                break;
+
+                            case Entity.EntityType.Enemy:
+                                level.levelObjects.Add(new Enemy((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean()));
+                                break;
+
+                            case Entity.EntityType.Item:
+                                level.levelObjects.Add(new Item((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean()));
+                                break;
+
+                        }
+                        break;
                 }
             }
-            
+        }
 
+        public void ExportToFile(string fileLocation)
+        {
+            BinaryWriter levelOutput;
+            try
+            {
+                levelOutput = new(File.Open(fileLocation, FileMode.Create));
+            }
+            catch
+            {
+                Console.WriteLine("failed to output level");
+                return;
+            }
+            foreach (Object levelObject in levelObjects)
+            {
+                levelOutput.Write((byte)levelObject.objectType);
+
+                switch (levelObject.objectType)
+                {
+                    case Object.ObjectType.Triangle:
+                        Triangle triTemp = (Triangle)levelObject;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            CustomVector3Extension.WriteVector3ToFile(triTemp.coordinates[0], ref levelOutput);
+                        }
+
+                        for (int i = 0; i < 3; i++)
+                        {
+                            levelOutput.Write(triTemp.textureCoordinates[i].X);
+                            levelOutput.Write(triTemp.textureCoordinates[i].Y);
+                        }
+                        levelOutput.Write(triTemp.directionIndex);
+
+                        break;
+                    case Object.ObjectType.Plane:
+                        Plane planeTemp = (Plane)levelObject;
+                        CustomVector3Extension.WriteVector3ToFile(planeTemp.centre, ref levelOutput);
+                        CustomVector3Extension.WriteVector3ToFile(planeTemp.normal, ref levelOutput);
+                        levelOutput.Write(planeTemp.width);
+                        levelOutput.Write(planeTemp.height);
+                        levelOutput.Write(planeTemp.textureIndex);
+                        levelOutput.Write(planeTemp.directionIndex);
+                        break;
+                    case Object.ObjectType.Cube:
+                        Cube cubeTemp = (Cube)levelObject;
+                        CustomVector3Extension.WriteVector3ToFile(cubeTemp.centre, ref levelOutput);
+                        CustomVector3Extension.WriteVector3ToFile((cubeTemp.scaleX, cubeTemp.scaleY, cubeTemp.scaleZ), ref levelOutput);
+                        levelOutput.Write(cubeTemp.textureIndex);
+                        break;
+                    case Object.ObjectType.Entity:
+                        Entity entityTemp = (Entity)levelObject;
+                        levelOutput.Write((byte)entityTemp.entityType);
+                        switch (entityTemp.entityType)
+                        {
+                            case Entity.EntityType.None:
+                                break;
+                            case Entity.EntityType.Enemy:
+                                Enemy enemyTemp = (Enemy)entityTemp;
+                                CustomVector3Extension.WriteVector3ToFile(enemyTemp.origin, ref levelOutput);
+                                levelOutput.Write(enemyTemp.scale.X); levelOutput.Write(enemyTemp.scale.Y);
+                                levelOutput.Write(enemyTemp.textureIndex);
+                                levelOutput.Write(enemyTemp.healthChange);
+                                levelOutput.Write(enemyTemp.pathfinding);
+                                break;
+                            case Entity.EntityType.Item:
+                                Item itemTemp = (Item)entityTemp;
+                                CustomVector3Extension.WriteVector3ToFile(itemTemp.origin, ref levelOutput);
+                                levelOutput.Write(itemTemp.scale.X); levelOutput.Write(itemTemp.scale.Y);
+                                levelOutput.Write(itemTemp.textureIndex);
+                                levelOutput.Write(itemTemp.healthChange);
+                                levelOutput.Write(itemTemp.pathfinding);
+                                break;
+                        }
+                        break;
+                }
+
+            }
+
+            levelOutput.Close();
         }
 
     }
