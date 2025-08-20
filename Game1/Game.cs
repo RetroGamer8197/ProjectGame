@@ -70,57 +70,37 @@ namespace Game1
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
             // --- Level ---
-            Level.ImportLevelFromFile("Levels/level1.lvl", out levelStore);
-            /*levelStore = new();
+            //Level.ImportLevelFromFile("Levels/level1.lvl", out levelStore);
+            levelStore = new();
             
             // room 1 decal
             levelStore.levelObjects.Add(new Plane((0.99f, 0, 0), (-1.0f, 0, 0), 0.5f, 0.5f, 4, 0.8f));
 
             // room 1
-            levelStore.levelObjects.Add(new Cube((0, 0, -1.25f), 2.0f, 1.0f, 0.5f, 4));
+            levelStore.levelObjects.Add(new Cube((0, 0, -1.25f), 2.0f, 1.0f, 0.5f, 4)); // back wall
+                // side walls
+            levelStore.levelObjects.Add(new Cube((0.625f, 0, 1.125f), 0.75f, 1.0f, 0.25f, 0));
+            levelStore.levelObjects.Add(new Cube((-0.625f, 0, 1.125f), 0.75f, 1.0f, 0.25f, 0));
 
-            levelStore.levelObjects.Add(new Cube((0.625f, 0, 1.25f), 0.75f, 1.0f, 0.5f, 0));
-            levelStore.levelObjects.Add(new Cube((-0.625f, 0, 1.25f), 0.75f, 1.0f, 0.5f, 0));
-
+                // exit walls
             levelStore.levelObjects.Add(new Cube((-1.25f, 0, 0), 0.5f, 1.0f, 2.0f, 0));
             levelStore.levelObjects.Add(new Cube((1.25f, 0, 0), 0.5f, 1.0f, 2.0f, 0));
 
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 0), 2.0f, 0.5f, 2.0f, 1));
             levelStore.levelObjects.Add(new Cube((0, 0.75f, 0), 2.0f, 0.5f, 2.0f, 3));
 
-            //corridor
-            levelStore.levelObjects.Add(new Cube((0, -0.75f, 1.25f), 0.5f, 0.5f, 0.5f, 2));
-            levelStore.levelObjects.Add(new Cube((0, 0.75f, 1.25f), 0.5f, 0.5f, 0.5f, 3));
+            // outside room
 
-            // room 2
-            levelStore.levelObjects.Add(new Cube((0, -0.75f, 2.5f), 2.0f, 0.5f, 2.0f, 2));
-            levelStore.levelObjects.Add(new Cube((0, 0.75f, 2.5f), 2.0f, 0.5f, 2.0f, 3));
+                // entrance walls
+            levelStore.levelObjects.Add(new Cube((1.625f, 0, 1.375f), 1.75f, 1.0f, 0.25f, 0));
+            levelStore.levelObjects.Add(new Cube((-1.625f, 0, 1.375f), 1.75f, 1.0f, 0.25f, 0));
 
-            levelStore.levelObjects.Add(new Cube((-1.25f, 0, 2.5f), 0.5f, 1.0f, 2.0f, 0));
-            levelStore.levelObjects.Add(new Cube((1.25f, 0, 2.5f), 0.5f, 1.0f, 2.0f, 0));
-
-            levelStore.levelObjects.Add(new Cube((0, 0, 2.5f), 0.25f, 0.25f, 0.25f, 1));
-
-            // white room
-            levelStore.levelObjects.Add(new Cube((0, -0.75f, 4.5f), 2.0f, 0.5f, 2.0f, 6));
-            levelStore.levelObjects.Add(new Cube((0, 0.75f, 4.5f), 2.0f, 0.5f, 2.0f, 6));
-
-            levelStore.levelObjects.Add(new Cube((-1.25f, 0, 4.5f), 0.5f, 1.0f, 2.0f, 6));
-            levelStore.levelObjects.Add(new Cube((1.25f, 0, 4.5f), 0.5f, 1.0f, 2.0f, 6));
-
-            // huge room
-            levelStore.levelObjects.Add(new Cube((0, -0.75f, 10.5f), 10.0f, 0.5f, 10.0f, 3));
-
-            // entity test
-            levelStore.levelObjects.Add(new Enemy((0, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, false));
-            levelStore.levelObjects.Add(new Enemy((5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, false));
-            levelStore.levelObjects.Add(new Enemy((-5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, false));
-
-            levelStore.levelObjects.Add(new Item((0.0f, -0.25f, 8.0f), (0.5f, 0.5f), 2, +10, false));*/
+            levelStore.levelObjects.Add(new Cube((0, -0.75f, 0), 2.0f, 0.5f, 2.0f, 1));
+            levelStore.levelObjects.Add(new Cube((0, 0.75f, 0), 2.0f, 0.5f, 2.0f, 3));
 
             levelStore.Sync_GL_Level();
 
-            //levelStore.ExportToFile("Levels/level1.lvl");
+            levelStore.ExportToFile("Levels/level1.lvl");
 
 
             // --- HUD ---
