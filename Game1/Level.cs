@@ -24,7 +24,7 @@ namespace Game1 {
 
         }
 
-        public virtual void HandleClickedOn()
+        public virtual void HandleClickedOn(float attackDamage)
         {
 
         }
@@ -119,10 +119,10 @@ namespace Game1 {
             /// this project uses a texture atlas to store all the textures used so a texture index in the atlas 
             /// must be converted to UV space before OpenGL can process it
             textureCoordinates = [
-                new(textureIndex % 4 * 0.25f, (4 - (textureIndex >> 2)) * 0.25f),
-                new(textureIndex % 4 * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
-                new((1 + (textureIndex % 4)) * 0.25f, (4 - (textureIndex >> 2)) * 0.25f),
-                new((1 + (textureIndex % 4)) * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
+                new(textureIndex % 4 * 0.25f + 0.00390625f, (3.99f - (textureIndex >> 2)) * 0.25f),
+                new(textureIndex % 4 * 0.25f + 0.00390625f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
+                new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.99609375f - (textureIndex >> 2)) * 0.25f),
+                new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
             ];
 
             // vertex coordinates are used when converting this object to the format used by OpenGL and the shaders
@@ -479,7 +479,7 @@ namespace Game1 {
 
                             case Entity.EntityType.Enemy:
                                 level.levelObjects.Add(new Enemy((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean()));
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadBoolean()));
                                 break;
 
                             case Entity.EntityType.Item:

@@ -16,10 +16,11 @@ namespace Game1
         public int textureIndex, healthChange;
         public bool pathfinding;
         public EntityType entityType;
+        public bool alive = true;
         public Entity(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn, EntityType entityTypeIn)
         {
             objectType = ObjectType.Entity;
-            entityType  = entityTypeIn;
+            entityType = entityTypeIn;
             Position = position;
             scale = scaleIn;
             textureIndex = textureIndexIn;
@@ -49,21 +50,16 @@ namespace Game1
 
     }
 
-    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
+    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
     {
+        float health = maxHealth;
+        public new bool alive = true;
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
-
-            /*if (Position.Z > 5)
+            if (!alive)
             {
-                direction = -1;
+                return;
             }
-            else if (Position.Z < 0)
-            {
-                direction = 1;
-            }
-            Position += direction * Vector3.UnitZ * Game.speed * 0.25f;*/
-
             Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
 
             if (directionVector.LengthSquared > 25f)
@@ -95,11 +91,15 @@ namespace Game1
             }
         }
 
-        public override void HandleClickedOn()
+        public override void HandleClickedOn(float attackDamage)
         {
-            base.HandleClickedOn();
+            base.HandleClickedOn(attackDamage);
 
-            Position = origin;
+            health -= attackDamage;
+            if (health <= 0)
+            {
+                alive = false;
+            }
         }
 
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
@@ -121,6 +121,7 @@ namespace Game1
 
     public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Item)
     {
+        public new bool alive = true;
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {
             health += healthChange;

@@ -27,9 +27,9 @@ namespace Game1
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
 
-            levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0);
-            hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1);
-            entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2);
+            levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
+            hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
+            entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
 
             levelShader = new("Shaders/level.vert", "Shaders/level.frag");
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
@@ -89,9 +89,13 @@ namespace Game1
                 if (objEntity.objectType == Object.ObjectType.Entity)
                 {
                     entityTemp = (Entity)objEntity;
-                    GL_Entity.AddRange(entityTemp.GenerateOpenGLData(player.upRotation + player.moveRotation));
+                    if (entityTemp.alive == true)
+                    {
+                        GL_Entity.AddRange(entityTemp.GenerateOpenGLData(player.upRotation + player.moveRotation));
+                    }
                 }
             }
+            
             float[] GL_EntityArray = [.. GL_Entity];
 
             levelShader.SetInt("textureAtlas", 2);

@@ -10,6 +10,10 @@ namespace Game1
         public Vector3 upRotation, moveRotation;
         public float Health;
         bool EscapeKeyState;
+        float yVelocity = 0f;
+        int weaponIndex = 0;
+        Weapon[] weapons = [new Weapon(10, 20, Weapon.WeaponTypes.Pistol), new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
+                            new Weapon(30, 30, Weapon.WeaponTypes.Rifle), new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
 
         public Player(Vector3 positionIn, Vector3 scaleIn, Vector3 moveRotationIn, float healthIn)
         {
@@ -25,6 +29,7 @@ namespace Game1
         public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
+            bool jumping = false;
 
             if (keyboardState.IsKeyDown(Keys.Escape))
             {
@@ -76,13 +81,18 @@ namespace Game1
                 }
             }
 
+            if (keyboardState.IsKeyPressed(Keys.R))
+            {
+                weapons[weaponIndex].Reload();
+            }
+
             if (mouseState.Delta != (0, 0) && cursorState == CursorState.Grabbed)
             {
                 moveRotation.Y += (float)(mouseState.Delta.X * Math.PI / game.WINDOW_WIDTH / 1000);
                 upRotation.X += (float)(mouseState.Delta.Y * Math.PI / game.WINDOW_WIDTH / 1000);
             }
 
-            if (mouseState.IsButtonDown(MouseButton.Button1))
+            if (mouseState.IsButtonPressed(MouseButton.Button1))
             {
                 RaycastToObject(ref levelStore);
             }
@@ -118,19 +128,16 @@ namespace Game1
                 tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
             }
 
-            if (keyboardState.IsKeyDown(Keys.E))
+            /*if (keyboardState.IsKeyDown(Keys.E))
             {
                 tempY.Y += Game.speed * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.Q))
             {
                 tempY.Y -= Game.speed * deltaTime;
-            }
-
-            /*if (keyboardState.IsKeyDown(Keys.Space))
-            {
-                tempY.Y += 15 * speed;
             }*/
+
+            tempY.Y = yVelocity * deltaTime;
 
 
             // collision detection
@@ -165,12 +172,20 @@ namespace Game1
 
 
             }
-            if (grounded)
+
+            if (grounded && !jumping)
             {
+                yVelocity = 0;
+                tempY.Y = 0f;
+            }
+            else if (jumping && grounded)
+            {
+                Position.Y += yVelocity * deltaTime;
             }
             else
             {
-                Position.Y -= Game.speed * deltaTime / 5;
+                yVelocity -= 9f * deltaTime;
+                Position.Y += yVelocity * deltaTime;
             }
 
             if (!collidedXZ && !collidedX && !collidedZ)
@@ -194,6 +209,11 @@ namespace Game1
             }
 
             Position += tempZ + tempX;
+
+            if (keyboardState.IsKeyDown(Keys.Space) && grounded)
+            {
+                yVelocity = 4f;
+            }
         }
 
         public void RaycastToObject(ref Level level)
@@ -274,16 +294,17 @@ namespace Game1
                 if (closestObject != -1)
                 {
                     validRaycast = true;
-                    level.levelObjects[closestObject].HandleClickedOn();
+                    level.levelObjects[closestObject].HandleClickedOn(weapons[weaponIndex].Shoot());
                 }
 
-                
+
                 length = (float.Min(float.Min(tMaxX, tMaxY), tMaxZ) * direction).Length;
 
             } while (!validRaycast && length <= 10);
         }
-        
-        public static Vector3 FloorPosition(Vector3 position, float scale) {
+
+        public static Vector3 FloorPosition(Vector3 position, float scale)
+        {
 
             position /= scale;
 
@@ -309,6 +330,55 @@ namespace Game1
         private float health = 100;
         */
     }
-    
 
+    public class Weapon
+    {
+        float attackDamage;
+        int magSize;
+        int currentMagUsage;
+        private int availableAmmo;
+        public int UITextureIndex;
+
+        public enum WeaponTypes
+        {
+            Pistol, Shotgun, Rifle, RPG
+        }
+
+        public WeaponTypes weaponType;
+
+        public Weapon(float _attackDamage, int _magSize, WeaponTypes _weaponType)
+        {
+            attackDamage = _attackDamage;
+            magSize = _magSize;
+            weaponType = _weaponType;
+            availableAmmo = 10000;
+        }
+
+        public float Shoot()
+        {
+            if (currentMagUsage != 0)
+            {
+                currentMagUsage--;
+                return attackDamage;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public void Reload()
+        {
+            while (currentMagUsage != magSize && availableAmmo > 0)
+            {
+                currentMagUsage++;
+            }
+        }
+
+        public void CollectAmmo(int collected)
+        {
+            availableAmmo += collected;
+        }
+
+    }
 }
