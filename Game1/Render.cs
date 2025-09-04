@@ -7,6 +7,7 @@ namespace Game1
     public class Renderer
     {
         private int VertexBufferObject, VertexArrayObject;
+        private double tintDuration = -1;
         public Shader levelShader;
         private Texture levelTextureAtlas, hudAtlas, entityAtlas;
 
@@ -49,6 +50,8 @@ namespace Game1
             levelShader.SetInt("texture1", 0);
             levelShader.SetInt("texture2", 1);
             levelShader.SetInt("texture3", 2);
+            levelShader.SetVec4("tintColor", (1, 1, 1, 0));
+            levelShader.SetInt("tintEnable", 0);
 
             GL.Enable(EnableCap.DepthTest);
         }
@@ -95,7 +98,7 @@ namespace Game1
                     }
                 }
             }
-            
+
             float[] GL_EntityArray = [.. GL_Entity];
 
             levelShader.SetInt("textureAtlas", 2);
@@ -120,7 +123,7 @@ namespace Game1
             levelTextureAtlas.Use(TextureUnit.Texture0);
             levelShader.SetInt("textureAtlas", 0);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, skybox.Count * sizeof(float), skybox.ToArray(), BufferUsageHint.StreamDraw); // buffer the Entity 
+            GL.BufferData(BufferTarget.ArrayBuffer, skybox.Count * sizeof(float), skybox.ToArray(), BufferUsageHint.StreamDraw); // buffer the skybox vertex data 
             levelShader.Use(model, view, projection);
             GL.DrawArrays(PrimitiveType.Triangles, 0, skybox.Count / 6);
 
@@ -149,6 +152,26 @@ namespace Game1
             levelShader.Dispose();
         }
 
-    }
+        public void FlashColorTint(Vector4 color)
+        {
+            levelShader.SetVec4("tintColor", color);
+            levelShader.SetFloat("tintEnable", 1);
+            tintDuration = 0f;
+        }
 
+        public void TintTick(double timeSinceLastTick)
+        {
+
+            if (tintDuration != -1)
+            {
+                tintDuration += timeSinceLastTick;
+
+                if (tintDuration > 0.2f)
+                {
+                    tintDuration = -1;
+                    levelShader.SetFloat("tintEnable", 0);
+                }
+            }
+        }
+    }
 }

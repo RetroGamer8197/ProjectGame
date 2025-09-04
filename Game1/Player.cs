@@ -26,7 +26,7 @@ namespace Game1
             upRotation = new(0);
         }
 
-        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime)
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             bool jumping = false;
@@ -94,7 +94,7 @@ namespace Game1
 
             if (mouseState.IsButtonPressed(MouseButton.Button1))
             {
-                RaycastToObject(ref levelStore);
+                RaycastToObject(ref levelStore, ref renderer);
             }
 
             if (upRotation.X < -Math.PI * 0.45f)
@@ -216,7 +216,7 @@ namespace Game1
             }
         }
 
-        public void RaycastToObject(ref Level level)
+        public void RaycastToObject(ref Level level, ref Renderer renderer)
         {
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
             float stepScale = 1 / 100f;
@@ -294,7 +294,7 @@ namespace Game1
                 if (closestObject != -1)
                 {
                     validRaycast = true;
-                    level.levelObjects[closestObject].HandleClickedOn(weapons[weaponIndex].Shoot());
+                    level.levelObjects[closestObject].HandleClickedOn(weapons[weaponIndex].Shoot( ref renderer));
                 }
 
 
@@ -354,11 +354,12 @@ namespace Game1
             availableAmmo = 10000;
         }
 
-        public float Shoot()
+        public float Shoot(ref Renderer renderer)
         {
             if (currentMagUsage != 0)
             {
                 currentMagUsage--;
+                renderer.FlashColorTint((0.99f, 0.92f, 0.43f, 0.0f));
                 return attackDamage;
             }
             else

@@ -9,7 +9,7 @@ namespace Game1
     {
         public const float speed = 2;
         public float WINDOW_WIDTH = 1.6f / 0.9f, WINDOW_HEIGHT = 1.0f;
-
+        bool firstFrame = true;
         public Shader levelShader;
         public Texture levelTextureAtlas, hudAtlas, entityAtlas;
 
@@ -211,9 +211,17 @@ namespace Game1
         {
             base.OnUpdateFrame(e);
 
+            // fix a specific issue with OpenGL only filling a quarter of the window on MacOS
+            if (OperatingSystem.IsMacOS() && firstFrame)
+            {
+                CenterWindow();
+                firstFrame = false;
+            }
+
             CursorState temp_cstate = CursorState;
 
-            player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time);
+            player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer);
+            renderer.TintTick(e.Time);
 
             CursorState = temp_cstate;
         }
