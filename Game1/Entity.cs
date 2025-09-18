@@ -1,5 +1,5 @@
 using OpenTK.Mathematics;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Game1
 {
@@ -29,7 +29,7 @@ namespace Game1
             origin = position;
         }
 
-        public float[] GenerateOpenGLData(Vector3 playerRotation)
+        public virtual float[] GenerateOpenGLData(Vector3 playerRotation)
         {
             List<float> openGLData = [];
 
@@ -116,6 +116,16 @@ namespace Game1
             {
                 return false;
             }
+        }
+
+        public override float[] GenerateOpenGLData(Vector3 playerRotation)
+        {
+            if (!alive)
+            {
+                return [];
+            }
+
+            return base.GenerateOpenGLData(playerRotation);
         }
     }
 

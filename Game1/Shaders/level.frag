@@ -12,7 +12,7 @@ uniform vec4 tintColor;
 //in vec4 vertexColor;
 void main() {
     
-    vec4 texColor = ((texture(textureAtlas, texCoord) + (tintEnable * tintColor)) / (1+tintEnable)) * shaderdir;//mix(texture(texture1, texCoord), texture(texture2, texCoord), 0.4);
+    vec4 texColor = (( 2 * (texture(textureAtlas, texCoord)) + (tintEnable * tintColor)) / (2+tintEnable)) * shaderdir;//mix(texture(texture1, texCoord), texture(texture2, texCoord), 0.4);
     if (texColor.a < 0.1f) {
         discard;
     } else {

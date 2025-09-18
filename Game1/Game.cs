@@ -1,12 +1,18 @@
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Game1
 {
 
     public class Game : GameWindow
     {
+        public enum GameState
+        {
+            Menu, Level, Pause
+        }
+
         public const float speed = 2;
         public float WINDOW_WIDTH = 1.6f / 0.9f, WINDOW_HEIGHT = 1.0f;
         bool firstFrame = true;
@@ -15,6 +21,7 @@ namespace Game1
 
         Player player;
 
+        public GameState gameState = GameState.Menu;
 
         private Level levelStore;
         private Level HUD;
@@ -70,7 +77,7 @@ namespace Game1
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
             // --- Level ---
-            //Level.ImportLevelFromFile("Levels/level1.lvl", out levelStore);
+            Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
             levelStore = new();
 
             // room 1 decal
@@ -82,7 +89,7 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((0.625f, 0, 1.125f), 0.75f, 1.0f, 0.25f, 0));
             levelStore.levelObjects.Add(new Cube((-0.625f, 0, 1.125f), 0.75f, 1.0f, 0.25f, 0));
 
-                // exit walls
+            // exit walls
             levelStore.levelObjects.Add(new Cube((-1.25f, 0, 0), 0.5f, 1.0f, 2.0f, 0));
             levelStore.levelObjects.Add(new Cube((1.25f, 0, 0), 0.5f, 1.0f, 2.0f, 0));
 
@@ -91,13 +98,13 @@ namespace Game1
 
             // outside room 1
 
-                // entrance walls
+            // entrance walls
             levelStore.levelObjects.Add(new Cube((1.25f, 0f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
             levelStore.levelObjects.Add(new Cube((-1.25f, 0f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
             levelStore.levelObjects.Add(new Cube((1f, 1f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
             levelStore.levelObjects.Add(new Cube((-1f, 1f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
 
-                // side walls
+            // side walls
             levelStore.levelObjects.Add(new Cube((-2.25f, 1f, 2.5f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((-2.25f, 1f, 4.5f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((-2.25f, 0f, 2.5f), 0.5f, 1.0f, 2.0f, 5));
@@ -107,21 +114,21 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((2.25f, 1f, 4.5f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((2.25f, 0f, 2.5f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((2.25f, 0f, 4.5f), 0.5f, 1.0f, 2.0f, 5));
-                
-                // exit walls
+
+            // exit walls
             levelStore.levelObjects.Add(new Cube((1.25f, 0f, 5.75f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((-1.25f, 0f, 5.75f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((1f, 1f, 5.75f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((-1f, 1f, 5.75f), 2.0f, 1.0f, 0.5f, 5));
-            
-                //floor
+
+            //floor
             levelStore.levelObjects.Add(new Cube((1, -0.75f, 2.5f), 2.0f, 0.5f, 2.0f, 6));
             levelStore.levelObjects.Add(new Cube((-1, -0.75f, 2.5f), 2.0f, 0.5f, 2.0f, 6));
             levelStore.levelObjects.Add(new Cube((1, -0.75f, 4.5f), 2.0f, 0.5f, 2.0f, 6));
             levelStore.levelObjects.Add(new Cube((-1, -0.75f, 4.5f), 2.0f, 0.5f, 2.0f, 6));
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 5.75f), 2.0f, 0.5f, 0.5f, 6));
 
-                // entities
+            // entities
             levelStore.levelObjects.Add(new Enemy((1, -0.2f, 4.5f), (0.4f, 0.6f), 1, 0, 100, true));
             levelStore.levelObjects.Add(new Enemy((-1, -0.2f, 4.5f), (0.4f, 0.6f), 1, 0, 100, true));
 
@@ -145,7 +152,7 @@ namespace Game1
 
             levelStore.levelObjects.Add(new Cube((3, -0.75f, 18.25f), 2f, 0.5f, 0.5f, 6));
 
-                // right wall
+            // right wall
             levelStore.levelObjects.Add(new Cube((-1.25f, 1f, 7f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((-1.25f, 0f, 7f), 0.5f, 1.0f, 2.0f, 5));
 
@@ -161,7 +168,7 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((-2f, 1f, 17f), 2.0f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((-2f, 0f, 17f), 2.0f, 1.0f, 2.0f, 5));
 
-                // left wall
+            // left wall
             levelStore.levelObjects.Add(new Cube((1.25f, 1f, 7f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((1.25f, 0f, 7f), 0.5f, 1.0f, 2.0f, 5));
 
@@ -179,11 +186,11 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((5.25f, 1f, 17f), 0.5f, 1.0f, 2.0f, 5));
             levelStore.levelObjects.Add(new Cube((5.25f, 0f, 17f), 0.5f, 1.0f, 2.0f, 5));
 
-                // back wall
+            // back wall
             levelStore.levelObjects.Add(new Cube((0f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((0f, 0f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
 
-                // exit walls
+            // exit walls
             levelStore.levelObjects.Add(new Cube((1.875f, 0f, 18.25f), 1.75f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((4.125f, 0f, 18.25f), 1.75f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((2f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
@@ -204,7 +211,8 @@ namespace Game1
             // health
             HUD.levelObjects.Add(new Plane((-0.75f, -0.75f, 0), (0, 0, 1), 0.25f, 0.25f, 0, 1.0f));
 
-            GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
+            //GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
+            
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -218,20 +226,42 @@ namespace Game1
                 firstFrame = false;
             }
 
-            CursorState temp_cstate = CursorState;
+            switch (gameState)
+            {
+                case GameState.Menu:
+                    if (KeyboardState.IsKeyPressed(Keys.Enter))
+                    {
+                        gameState = GameState.Level;
+                    }
+                    break;
+                case GameState.Level:
+                    // handles player input
+                    CursorState temp_cstate = CursorState;  // because the CursorState cannot be sent as a ref, the solution is to 
+                                                            // create a copy and then reassign the original after modifying the copy
+                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer);
+                    CursorState = temp_cstate;
 
-            player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer);
-            renderer.TintTick(e.Time);
-
-            CursorState = temp_cstate;
+                    // manage tinting for flash
+                    renderer.TintTick(e.Time);
+                    break;
+            }
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             base.OnRenderFrame(args);
+            switch (gameState)
+            {
 
-            // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
-            renderer.RenderFrame(player, levelStore, HUD, WINDOW_WIDTH, WINDOW_HEIGHT);
+                case GameState.Menu:
+                    renderer.RenderMainMenu();
+                    break;
+                case GameState.Level:
+                    // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
+                    renderer.RenderLevelFrame(player, levelStore, HUD, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    break;
+            }
+            
 
             SwapBuffers();  // present the final rendered image as the front buffer so we can begin work on the next frame in the back buffer
         }
@@ -251,6 +281,8 @@ namespace Game1
 
         protected override void OnResize(ResizeEventArgs e)
         {
+            // when moving or resizing the window, this code changes the size of the OpenGL viewport to fill the window
+
             base.OnResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);

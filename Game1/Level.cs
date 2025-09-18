@@ -9,6 +9,7 @@ namespace Game1 {
         }
         public ObjectType objectType;
 
+        // these virtual functions are not used in the object class but are used by its child classes
         public virtual Triangle[] ConvertToTriangles()
         {
             return [];
@@ -27,6 +28,11 @@ namespace Game1 {
         public virtual void HandleClickedOn(float attackDamage)
         {
 
+        }
+
+        public virtual void HandleInteract(ref List<HeldItem> heldItems)
+        {
+            
         }
         
         public virtual bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
@@ -124,6 +130,9 @@ namespace Game1 {
                 new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.99609375f - (textureIndex >> 2)) * 0.25f),
                 new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
             ];
+            /// the texture atlas is a 256x256 image. As bilinear filtering is used on the world atlas, the textures need to be
+            /// one pixel offset from the edge on all sides to prevent bleed from neighbouring textures. One pixel is
+            /// 0.00390625f so this is used to describe a 62x62 area of the texture atlas which will sample from the whole 64x64 texture
 
             // vertex coordinates are used when converting this object to the format used by OpenGL and the shaders
             vertexCoordinates = [
@@ -157,7 +166,7 @@ namespace Game1 {
 
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
-            bool isCollision =CheckCollision(input, new(stepScale));
+            bool isCollision = CheckCollision(input, new(stepScale));
 
             if (isCollision) {
                 distanceFrom = 0;

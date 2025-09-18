@@ -8,10 +8,11 @@ namespace Game1
     {
         public Vector3 Position, Scale, hCollisionScale, vCollisionScale;
         public Vector3 upRotation, moveRotation;
+        List<HeldItem> Inventory = [];
         public float Health;
-        bool EscapeKeyState;
         float yVelocity = 0f;
         int weaponIndex = 0;
+
         Weapon[] weapons = [new Weapon(10, 20, Weapon.WeaponTypes.Pistol), new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
                             new Weapon(30, 30, Weapon.WeaponTypes.Rifle), new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
 
@@ -30,6 +31,10 @@ namespace Game1
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             bool jumping = false;
+
+            // very long delta times, such as slow frames or debugging causes objects to fly out of the level so clamping the delta time
+            // means this won't happen
+            deltaTime = Math.Clamp(deltaTime, 0.0f, 0.033f);
 
             if (keyboardState.IsKeyDown(Keys.Escape))
             {
@@ -55,13 +60,8 @@ namespace Game1
                 upRotation.X -= (float)(Math.PI / 600.0);
             }
 
-
-
-            if (keyboardState.IsKeyDown(Keys.Backspace))
+            if (keyboardState.IsKeyPressed(Keys.Backspace))
             {
-                if (!EscapeKeyState)
-                {
-                    EscapeKeyState = true;
                     if (cursorState == CursorState.Normal)
                     {
                         cursorState = CursorState.Grabbed;
@@ -70,15 +70,6 @@ namespace Game1
                     {
                         cursorState = CursorState.Normal;
                     }
-
-                }
-            }
-            else if (keyboardState.IsKeyReleased(Keys.Backspace))
-            {
-                if (EscapeKeyState)
-                {
-                    EscapeKeyState = false;
-                }
             }
 
             if (keyboardState.IsKeyPressed(Keys.R))
@@ -92,9 +83,14 @@ namespace Game1
                 upRotation.X += (float)(mouseState.Delta.Y * Math.PI / game.WINDOW_WIDTH / 1000);
             }
 
-            if (mouseState.IsButtonPressed(MouseButton.Button1))
+            if ((mouseState.IsButtonPressed(MouseButton.Button1) && cursorState == CursorState.Grabbed) || keyboardState.IsKeyPressed(Keys.LeftAlt))
             {
-                RaycastToObject(ref levelStore, ref renderer);
+                RaycastToObject(ref levelStore, ref renderer, false);
+            }
+
+            if (keyboardState.IsKeyPressed(Keys.E))
+            {
+                RaycastToObject(ref levelStore, ref renderer, true);
             }
 
             if (upRotation.X < -Math.PI * 0.45f)
@@ -216,8 +212,9 @@ namespace Game1
             }
         }
 
-        public void RaycastToObject(ref Level level, ref Renderer renderer)
+        public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType)
         {
+            // interact type is true if it is an interaction and false if it is an attack
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
             float stepScale = 1 / 100f;
             bool validRaycast = false;
@@ -294,13 +291,25 @@ namespace Game1
                 if (closestObject != -1)
                 {
                     validRaycast = true;
-                    level.levelObjects[closestObject].HandleClickedOn(weapons[weaponIndex].Shoot( ref renderer));
+                    if (interactType)
+                    {
+                        Player ptemp = this;
+                        level.levelObjects[closestObject].HandleInteract(ref Inventory);
+                    }
+                    else
+                    {
+                        level.levelObjects[closestObject].HandleClickedOn(weapons[weaponIndex].Shoot(ref renderer));
+                    }
                 }
 
 
                 length = (float.Min(float.Min(tMaxX, tMaxY), tMaxZ) * direction).Length;
 
             } while (!validRaycast && length <= 10);
+            if (!validRaycast)
+            {
+                weapons[weaponIndex].Shoot(ref renderer);
+            }
         }
 
         public static Vector3 FloorPosition(Vector3 position, float scale)
@@ -380,6 +389,21 @@ namespace Game1
         {
             availableAmmo += collected;
         }
+
+    }
+
+    public class HeldItem
+    {
+        public enum Colors
+        {
+            Red, Green, Blue, Yellow
+        }
+        public enum ItemTypes
+        {
+            Keycard, 
+        }
+        public Colors color;
+        public ItemTypes itemType;
 
     }
 }

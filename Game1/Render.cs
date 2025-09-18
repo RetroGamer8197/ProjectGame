@@ -28,12 +28,16 @@ namespace Game1
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
 
+            // load all texture atlases into the VRAM
             levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
             hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
             entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
 
+            // load and initialise the shader program
             levelShader = new("Shaders/level.vert", "Shaders/level.frag");
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+
+            // set up the vertex attributes so the shader can see and use them
 
             int vertexLocation = GL.GetAttribLocation(levelShader.Handle, "aPosition");
             GL.EnableVertexAttribArray(vertexLocation);
@@ -47,16 +51,30 @@ namespace Game1
             GL.EnableVertexAttribArray(shaderDirection);
             GL.VertexAttribPointer(shaderDirection, 1, VertexAttribPointerType.Float, false, 6 * sizeof(float), 5 * sizeof(float));
 
+            // set the uniforms up for the shader
             levelShader.SetInt("texture1", 0);
             levelShader.SetInt("texture2", 1);
             levelShader.SetInt("texture3", 2);
             levelShader.SetVec4("tintColor", (1, 1, 1, 0));
             levelShader.SetInt("tintEnable", 0);
 
+            // enable the depth buffer for triangle sorting
             GL.Enable(EnableCap.DepthTest);
         }
+        public void RenderMainMenu()
+        {
+            GL.Disable(EnableCap.DepthTest);
 
-        public void RenderFrame(Player player, Level levelStore, Level HUD, float WINDOW_WIDTH, float WINDOW_HEIGHT)
+            float[] MainMenu = [];
+
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.BufferData(BufferTarget.ArrayBuffer, MainMenu.Length * sizeof(float), MainMenu, BufferUsageHint.StreamDraw);
+
+            levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+        }
+
+        public void RenderLevelFrame(Player player, Level levelStore, Level HUD, float WINDOW_WIDTH, float WINDOW_HEIGHT)
         {
             GL.Enable(EnableCap.DepthTest);     // when drawing level geometry, we need the depth buffer enabled so that the triangles are drawn in the correct order 
 
@@ -166,7 +184,7 @@ namespace Game1
             {
                 tintDuration += timeSinceLastTick;
 
-                if (tintDuration > 0.2f)
+                if (tintDuration > 0.12f)
                 {
                     tintDuration = -1;
                     levelShader.SetFloat("tintEnable", 0);
