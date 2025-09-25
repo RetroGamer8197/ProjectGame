@@ -8,7 +8,7 @@ namespace Game1
     {
         public Vector3 Position, Scale, hCollisionScale, vCollisionScale;
         public Vector3 upRotation, moveRotation;
-        List<HeldItem> Inventory = [];
+        List<HeldItem> Inventory = [new HeldItem() {color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard}];
         public float Health;
         float yVelocity = 0f;
         int weaponIndex = 0;
@@ -34,30 +34,32 @@ namespace Game1
 
             // very long delta times, such as slow frames or debugging causes objects to fly out of the level so clamping the delta time
             // means this won't happen
-            deltaTime = Math.Clamp(deltaTime, 0.0f, 0.033f);
+            deltaTime = Math.Clamp(deltaTime, 0.0f, 0.1f);
 
             if (keyboardState.IsKeyDown(Keys.Escape))
             {
                 game.Close();
             }
 
+            // multiplying by delta time unhooks movement and turn speed from the frame rate, meaning slow frame rates will not make the game itself feel slow
+
             // input handler (rotation using euler angles)
             if (keyboardState.IsKeyDown(Keys.Right))
             {
-                moveRotation.Y += (float)(Math.PI / 600.0);
+                moveRotation.Y += (float)(Math.PI / 2) * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.Left))
             {
-                moveRotation.Y -= (float)(Math.PI / 600.0);
+                moveRotation.Y -= (float)(Math.PI / 2) * deltaTime;
             }
 
             if (keyboardState.IsKeyDown(Keys.Down))
             {
-                upRotation.X += (float)(Math.PI / 600.0);
+                upRotation.X += (float)(Math.PI / 2) * deltaTime;
             }
             if (keyboardState.IsKeyDown(Keys.Up))
             {
-                upRotation.X -= (float)(Math.PI / 600.0);
+                upRotation.X -= (float)(Math.PI / 2) * deltaTime;
             }
 
             if (keyboardState.IsKeyPressed(Keys.Backspace))
@@ -93,13 +95,13 @@ namespace Game1
                 RaycastToObject(ref levelStore, ref renderer, true);
             }
 
-            if (upRotation.X < -Math.PI * 0.45f)
+            if (upRotation.X < -Math.PI * 0.499f)
             {
-                upRotation.X = -(float)(Math.PI * 0.45f);
+                upRotation.X = -(float)(Math.PI * 0.499f);
             }
-            else if (upRotation.X > Math.PI * 0.45f)
+            else if (upRotation.X > Math.PI * 0.499f)
             {
-                upRotation.X = (float)(Math.PI * 0.45f);
+                upRotation.X = (float)(Math.PI * 0.499f);
             }
 
             Vector3 front3 = Matrix3.CreateRotationY(moveRotation.Y) * new Vector3(0f, 0f, -1f);
@@ -123,15 +125,6 @@ namespace Game1
             {
                 tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
             }
-
-            /*if (keyboardState.IsKeyDown(Keys.E))
-            {
-                tempY.Y += Game.speed * deltaTime;
-            }
-            if (keyboardState.IsKeyDown(Keys.Q))
-            {
-                tempY.Y -= Game.speed * deltaTime;
-            }*/
 
             tempY.Y = yVelocity * deltaTime;
 
@@ -212,6 +205,11 @@ namespace Game1
             }
         }
 
+        public float GetCurrentWeaponMagUsage()
+        {
+            return weapons[weaponIndex].GetFullFraction();
+        }
+
         public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType)
         {
             // interact type is true if it is an interaction and false if it is an attack
@@ -285,6 +283,10 @@ namespace Game1
                         {
                             closestObject = i;
                         }
+                        if (closestObject != -1)
+                        {
+                            Console.WriteLine();
+                        }
                     }
                 }
 
@@ -343,7 +345,7 @@ namespace Game1
     public class Weapon
     {
         float attackDamage;
-        int magSize;
+        public readonly int magSize;
         int currentMagUsage;
         private int availableAmmo;
         public int UITextureIndex;
@@ -375,6 +377,11 @@ namespace Game1
             {
                 return 0;
             }
+        }
+
+        public float GetFullFraction()
+        {
+            return ((float)currentMagUsage) / magSize;
         }
 
         public void Reload()

@@ -102,6 +102,14 @@ namespace Game1
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, levelStore.GL_Level.Length / 6);
 
+            // begin drawing buttons
+            float[] levelTileEntitiesGL = levelStore.GenerateTileEntityGL();
+            GL.BufferData(BufferTarget.ArrayBuffer, levelTileEntitiesGL.Length * sizeof(float), levelTileEntitiesGL, BufferUsageHint.StreamDraw);
+            levelTextureAtlas.Use(TextureUnit.Texture0);
+            levelShader.SetInt("textureAtlas", 0);
+            levelShader.Use(model, view, projection);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, levelTileEntitiesGL.Length / 6);
+
             /// Begin drawing entities
             Entity entityTemp;
             List<float> GL_Entity = [];

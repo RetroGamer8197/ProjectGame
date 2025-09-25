@@ -1,7 +1,7 @@
 namespace Game1
 {
 
-    public class LevelTemp
+    public abstract class LevelTemp
     {
 
         public static Level levelReturn()
@@ -11,7 +11,7 @@ namespace Game1
             //Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
 
             // room 1 decal
-            levelStore.levelObjects.Add(new Plane((0.99f, 0, 0), (-1.0f, 0, 0), 0.5f, 0.5f, 4, 0.8f));
+            levelStore.levelObjects.Add(new Button((0.99f, 0, 0), (-1.0f, 0, 0), 0.5f, 0.5f, 4, 5, 0.8f, HeldItem.Colors.Red));
 
             // room 1
             levelStore.levelObjects.Add(new Cube((0, 0, -1.25f), 2.0f, 1.0f, 0.5f, 4)); // back wall
@@ -132,6 +132,38 @@ namespace Game1
 
             return levelStore;
         }
+
+    }
+
+    class unusedCode {
+
+        private readonly float[] HUD_Vertices = [
+            // health indicator
+            -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
+            -0.875f,-0.625f,0f,0f,1f, 1.0f,
+            -0.625f,-0.625f,0f,0.25f,1f, 1.0f,
+
+            -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
+            -0.625f,-0.625f,0f,0.25f,1f, 1.0f,
+            -0.625f,-0.875f,0f,0.25f,0.75f, 1.0f,
+
+            // crosshair
+            -0.00390625f,-0.03125f,0f,0.25f,0.75f, 1.0f,
+            -0.00390625f,0.03125f,0f,0.25f,1f, 1.0f,
+            0.00390625f,0.03125f,0f,0.5f,1f, 1.0f,
+
+            -0.00390625f,-0.03125f,0f,0.25f,0.75f, 1.0f,
+            0.00390625f,0.03125f,0f,0.5f,1f, 1.0f,
+            0.00390625f,-0.03125f,0f,0.5f,0.75f, 1.0f,
+
+            -0.03125f,-0.00390625f,0f,0.25f,0.75f,1.0f,
+            -0.03125f,0.00390625f,0f,0.25f,1f,1.0f,
+            0.03125f,0.00390625f,0f,0.5f,1f,1.0f,
+
+            -0.03125f,-0.00390625f,0f,0.25f,0.75f,1.0f,
+            0.03125f,0.00390625f,0f,0.5f,1f,1.0f,
+            0.03125f,-0.00390625f,0f,0.5f,0.75f,1.0f,
+        ];
 
     }
 

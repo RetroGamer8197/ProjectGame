@@ -25,33 +25,6 @@ namespace Game1
 
         private Level levelStore;
         private HUD HUD_Object;
-        private readonly float[] HUD_Vertices = [
-            // health indicator
-            -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
-            -0.875f,-0.625f,0f,0f,1f, 1.0f,
-            -0.625f,-0.625f,0f,0.25f,1f, 1.0f,
-
-            -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
-            -0.625f,-0.625f,0f,0.25f,1f, 1.0f,
-            -0.625f,-0.875f,0f,0.25f,0.75f, 1.0f,
-
-            // crosshair
-            -0.00390625f,-0.03125f,0f,0.25f,0.75f, 1.0f,
-            -0.00390625f,0.03125f,0f,0.25f,1f, 1.0f,
-            0.00390625f,0.03125f,0f,0.5f,1f, 1.0f,
-
-            -0.00390625f,-0.03125f,0f,0.25f,0.75f, 1.0f,
-            0.00390625f,0.03125f,0f,0.5f,1f, 1.0f,
-            0.00390625f,-0.03125f,0f,0.5f,0.75f, 1.0f,
-
-            -0.03125f,-0.00390625f,0f,0.25f,0.75f,1.0f,
-            -0.03125f,0.00390625f,0f,0.25f,1f,1.0f,
-            0.03125f,0.00390625f,0f,0.5f,1f,1.0f,
-
-            -0.03125f,-0.00390625f,0f,0.25f,0.75f,1.0f,
-            0.03125f,0.00390625f,0f,0.5f,1f,1.0f,
-            0.03125f,-0.00390625f,0f,0.5f,0.75f,1.0f,
-        ];
 
 
         Renderer renderer;
@@ -62,8 +35,12 @@ namespace Game1
 
         public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
         {
-            // caps framerate to 480 FPS
+            // caps framerate to 480 FPS unless on macos which is limited to 120
             UpdateFrequency = 480;
+            if (OperatingSystem.IsMacOS())
+            {
+                UpdateFrequency = 120;
+            }
 
         }
 
@@ -83,14 +60,17 @@ namespace Game1
 
             // crosshair
             HUD_Object.AddHUD_Element(new Crosshair());
+            HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.8f, 0)));
+            HUD_Object.AddHUD_Element(new HealthBar(1.0f, (0.7f, -0.8f, 0)));
 
             //GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
-            
+
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
+            Console.WriteLine(e.Time);
 
             // fix a specific issue with OpenGL only filling a quarter of the window on MacOS
             if (OperatingSystem.IsMacOS() && firstFrame)
@@ -116,6 +96,8 @@ namespace Game1
 
                     // manage tinting for flash
                     renderer.TintTick(e.Time);
+                    HUD_Object.HUD_Elements[1].DecreaseValue(0.1f);
+                    HUD_Object.HUD_Elements[2].UpdateValue(player.GetCurrentWeaponMagUsage());
                     break;
                 case GameState.Pause:
 
