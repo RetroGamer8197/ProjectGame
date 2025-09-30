@@ -8,7 +8,9 @@ namespace Game1
     {
         public Vector3 Position, Scale, hCollisionScale, vCollisionScale;
         public Vector3 upRotation, moveRotation;
-        List<HeldItem> Inventory = [new HeldItem() {color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard}];
+        List<HeldItem> Inventory = [new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard },
+                                    new HeldItem() {color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard}
+                                    ];
         public float Health;
         float yVelocity = 0f;
         int weaponIndex = 0;

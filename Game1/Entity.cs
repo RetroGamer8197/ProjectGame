@@ -53,6 +53,7 @@ namespace Game1
     public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
     {
         float health = maxHealth;
+        public float maxHealth = maxHealth;
         public new bool alive = true;
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
         {

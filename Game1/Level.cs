@@ -1,5 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
-using OpenTK.Graphics.ES20;
 using OpenTK.Mathematics;
 
 namespace Game1 {
@@ -7,7 +5,7 @@ namespace Game1 {
     {
         public enum ObjectType
         {
-            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4, Button = 5
+            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4, Button = 5, Door = 6
         }
         public ObjectType objectType;
 
@@ -34,13 +32,18 @@ namespace Game1 {
 
         public virtual void HandleInteract(ref List<HeldItem> heldItems)
         {
-            
+
         }
-        
+
         public virtual bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
             distanceFrom = float.MaxValue;
             return false;
+        }
+
+        public virtual void CheckObjectStateIsCorrect(ref Level level)
+        {
+            
         }
 
     }
@@ -338,10 +341,10 @@ namespace Game1 {
 
     public class Button : Plane
     {
-        readonly HeldItem.Colors buttonColor;
+        public readonly HeldItem.Colors buttonColor;
         public bool active = true;
-        private readonly int activeTextureIndex;
-        private readonly int inactiveTextureIndex;
+        public readonly int activeTextureIndex;
+        public readonly int inactiveTextureIndex;
 
         public Button(Vector3 centreIn, Vector3 normalIn, float widthIn, float heightIn, int textureIndexIn, int inactiveTextureIndexIn, float directionIndexIn, HeldItem.Colors color) : base(centreIn, normalIn, widthIn, heightIn, textureIndexIn, directionIndexIn)
         {
@@ -372,6 +375,8 @@ namespace Game1 {
 
             button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn, color);
         }
+
+        
 
         /*public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
@@ -455,6 +460,52 @@ namespace Game1 {
                     return;
                 }
             }
+        }
+    }
+
+    public class Door : Cube
+    {
+        public HeldItem.Colors ActivatorColor;
+        public bool defaultState, currentState;
+        public Door(Vector3 centrein, float scaleXin, float scaleYin, float scaleZin, int TextureIndexIn, HeldItem.Colors color, bool defaultStateIn) : base(centrein, scaleXin, scaleYin, scaleZin, TextureIndexIn)
+        {
+            defaultState = defaultStateIn;
+            ActivatorColor = color;
+            objectType = ObjectType.Door;
+        }
+
+        public override void CheckObjectStateIsCorrect(ref Level level)
+        {
+            foreach (Object o in level.levelObjects)
+            {
+                if (o.objectType == ObjectType.Button)
+                {
+                    Button tempButton = (Button)o;
+
+                    if (tempButton.buttonColor == ActivatorColor)
+                    {
+                        currentState = defaultState ^ tempButton.active;
+                    }
+                }
+            }
+        }
+
+        public override bool CheckCollision(Vector3 input, Vector3 playerScale)
+        {
+            if (!currentState)
+            {
+                return false;
+            }
+            return base.CheckCollision(input, playerScale);
+        }
+
+        public override Triangle[] ConvertToTriangles()
+        {
+            if (!currentState)
+            {
+                return [];
+            }
+            return base.ConvertToTriangles();
         }
     }
 
@@ -564,6 +615,16 @@ namespace Game1 {
                         }
                     }
                 }
+                else if (levelObject.objectType == Object.ObjectType.Door)
+                {
+                    foreach (Triangle triangle in levelObject.ConvertToTriangles())
+                    {
+                        for (int i = 0; i < 3; i++)
+                        {
+                            levelOpenGL.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
+                        }
+                    }
+                }
             }
 
             return [.. levelOpenGL];
@@ -633,8 +694,19 @@ namespace Game1 {
 
                         }
                         break;
+                    case Object.ObjectType.Button:
+                        level.levelObjects.Add(new Button((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadSingle(),
+                            levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), (HeldItem.Colors)levelFile.ReadByte()));
+                        break;
+                    case Object.ObjectType.Door:
+                        level.levelObjects.Add(new Door((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadInt32(),
+                            (HeldItem.Colors)levelFile.ReadByte(), levelFile.ReadBoolean()));
+                        break;
                 }
             }
+            level.Sync_GL_Level();
         }
 
         public void ExportToFile(string fileLocation)
@@ -698,6 +770,7 @@ namespace Game1 {
                                 levelOutput.Write(enemyTemp.scale.X); levelOutput.Write(enemyTemp.scale.Y);
                                 levelOutput.Write(enemyTemp.textureIndex);
                                 levelOutput.Write(enemyTemp.healthChange);
+                                levelOutput.Write(enemyTemp.maxHealth);
                                 levelOutput.Write(enemyTemp.pathfinding);
                                 break;
                             case Entity.EntityType.Item:
@@ -709,6 +782,25 @@ namespace Game1 {
                                 levelOutput.Write(itemTemp.pathfinding);
                                 break;
                         }
+                        break;
+                    case Object.ObjectType.Button:
+                        Button buttonTemp = (Button)levelObject;
+                        CustomVector3Extension.WriteVector3ToFile(buttonTemp.centre, ref levelOutput);
+                        CustomVector3Extension.WriteVector3ToFile(buttonTemp.normal, ref levelOutput);
+                        levelOutput.Write(buttonTemp.width);
+                        levelOutput.Write(buttonTemp.height);
+                        levelOutput.Write(buttonTemp.activeTextureIndex);
+                        levelOutput.Write(buttonTemp.inactiveTextureIndex);
+                        levelOutput.Write(buttonTemp.directionIndex);
+                        levelOutput.Write((byte)buttonTemp.buttonColor);
+                        break;
+                    case Object.ObjectType.Door:
+                        Door doorTemp = (Door)levelObject;
+                        CustomVector3Extension.WriteVector3ToFile(doorTemp.centre, ref levelOutput);
+                        CustomVector3Extension.WriteVector3ToFile((doorTemp.scaleX, doorTemp.scaleY, doorTemp.scaleZ), ref levelOutput);
+                        levelOutput.Write(doorTemp.textureIndex);
+                        levelOutput.Write((byte)doorTemp.ActivatorColor);
+                        levelOutput.Write(doorTemp.defaultState);
                         break;
                 }
 

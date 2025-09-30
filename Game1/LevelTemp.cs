@@ -26,6 +26,8 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 0), 3.0f, 0.5f, 3.0f, 1));
             levelStore.levelObjects.Add(new Cube((0, 0.75f, 0), 2.5f, 0.5f, 2.5f, 3));
 
+            levelStore.levelObjects.Add(new Door((0, 0, 1.25f), 0.5f, 1.0f, 0.25f, 0, HeldItem.Colors.Red, false));
+
             // outside room 1
 
             // entrance walls
@@ -125,6 +127,9 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((4.125f, 0f, 18.25f), 1.75f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((2f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((4f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
+
+            levelStore.levelObjects.Add(new Door((3, 0, 18.25f), 0.5f, 1.0f, 0.25f, 3, HeldItem.Colors.Blue, false));
+            levelStore.levelObjects.Add(new Button((4f, 0, 17.99f), (0, 0, -1.0f), 0.5f, 0.5f, 4, 5, 0.8f, HeldItem.Colors.Blue));
 
             levelStore.Sync_GL_Level();
 

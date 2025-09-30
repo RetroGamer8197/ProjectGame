@@ -53,7 +53,9 @@ namespace Game1
             renderer = new();
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
+            //Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
             levelStore = LevelTemp.levelReturn();
+            levelStore.ExportToFile("Levels/level2.lvl");
 
             // --- HUD ---
             HUD_Object = new();
@@ -91,6 +93,12 @@ namespace Game1
                     // handles player input
                     CursorState temp_cstate = CursorState;  // because the CursorState cannot be sent as a ref, the solution is to 
                                                             // create a copy and then reassign the original after modifying the copy
+
+                    for (int i = 0; i < levelStore.levelObjects.Count; i++)
+                    {
+                        levelStore.levelObjects[i].CheckObjectStateIsCorrect(ref levelStore);
+                    }
+
                     player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer);
                     CursorState = temp_cstate;
 
