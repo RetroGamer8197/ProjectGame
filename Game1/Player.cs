@@ -158,7 +158,7 @@ namespace Game1
                 }
                 else
                 {
-                    levelObject.Tick(Position, ref Health, deltaTime);
+                    levelObject.Tick(Position, ref Health, deltaTime, ref levelStore);
                 }
 
 
@@ -225,7 +225,7 @@ namespace Game1
             Vector3 checkPosition = FloorPosition(CameraPosition, stepScale);
             Vector3 RealPosition = CameraPosition;
             int closestObject;
-            float closestDistance, currentDistance;
+            float closestDistance;
 
             float modulus = 1;
 
@@ -279,7 +279,7 @@ namespace Game1
                 closestDistance = float.MaxValue;
                 for (int i = 0; i < level.levelObjects.Count; i++)
                 {
-                    if (level.levelObjects[i].CheckClickedCollision(checkPosition, stepScale, out currentDistance))
+                    if (level.levelObjects[i].CheckClickedCollision(checkPosition, stepScale, out float currentDistance))
                     {
                         if (currentDistance < closestDistance)
                         {

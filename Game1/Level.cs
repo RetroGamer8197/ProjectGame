@@ -20,7 +20,7 @@ namespace Game1 {
             return false;
         }
 
-        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime)
+        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level)
         {
 
         }

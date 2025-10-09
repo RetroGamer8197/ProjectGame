@@ -55,7 +55,7 @@ namespace Game1
         float health = maxHealth;
         public float maxHealth = maxHealth;
         public new bool alive = true;
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level)
         {
             if (!alive)
             {
@@ -63,7 +63,7 @@ namespace Game1
             }
             Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
 
-            if (directionVector.LengthSquared > 25f)
+            if (RaycastToPlayer(playerPosition, ref level) || (directionVector.LengthSquared > 25))
             {
                 directionVector = (new Random().Next(-5, 5), 0, new Random().Next(-5, 5));
             }
@@ -119,6 +119,92 @@ namespace Game1
             }
         }
 
+        public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
+        {
+            // interact type is true if it is an interaction and false if it is an attack
+            float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
+            float stepScale = 1 / 100f;
+            bool validRaycast = false;
+            Vector3 direction = Vector3.Normalize(playerPosition - Position);
+            float length;
+            float stepX = float.Sign(direction.X) * stepScale, stepY = float.Sign(direction.Y) * stepScale, stepZ = float.Sign(direction.Z) * stepScale;
+            Vector3 checkPosition = Player.FloorPosition(Position, stepScale);
+            Vector3 RealPosition = Position;
+            int closestObject;
+            float closestDistance;
+
+            float modulus = 1;
+
+            tDeltaX = Math.Abs(stepScale / direction.X);
+            tDeltaY = Math.Abs(stepScale / direction.Y);
+            tDeltaZ = Math.Abs(stepScale / direction.Z);
+
+            if (checkPosition.X - RealPosition.X == 0 && checkPosition.Y - RealPosition.Y == 0 && checkPosition.Y - RealPosition.Y == 0)
+            {
+                tMaxX = tDeltaX;
+                tMaxY = tDeltaY;
+                tMaxZ = tDeltaZ;
+            }
+            else
+            {
+                tMaxX = Math.Abs((checkPosition.X + stepX - RealPosition.X) % modulus / direction.X);
+                tMaxY = Math.Abs((checkPosition.Y + stepY - RealPosition.Y) % modulus / direction.Y);
+                tMaxZ = Math.Abs((checkPosition.Z + stepZ - RealPosition.Z) % modulus / direction.Z);
+            }
+
+            do
+            {
+                if (tMaxX < tMaxY)
+                {
+                    if (tMaxX < tMaxZ)
+                    {
+                        tMaxX += tDeltaX;
+                        checkPosition.X += stepX;
+                    }
+                    else
+                    {
+                        tMaxZ += tDeltaZ;
+                        checkPosition.Z += stepZ;
+                    }
+                }
+                else
+                {
+                    if (tMaxY < tMaxZ)
+                    {
+                        tMaxY += tDeltaY;
+                        checkPosition.Y += stepY;
+                    }
+                    else
+                    {
+                        tMaxZ += tDeltaZ;
+                        checkPosition.Z += stepZ;
+                    }
+                }
+
+                closestObject = -1;
+                closestDistance = float.MaxValue;
+                for (int i = 0; i < level.levelObjects.Count; i++)
+                {
+                    if (level.levelObjects[i].CheckClickedCollision(checkPosition, stepScale, out float currentDistance))
+                    {
+                        if (currentDistance < closestDistance)
+                        {
+                            closestObject = i;
+                        }
+                        if (closestObject != -1)
+                        {
+                            validRaycast = true;
+                        }
+                    }
+                }
+
+                length = (float.Min(float.Min(tMaxX, tMaxY), tMaxZ) * direction).Length;
+
+            } while (!validRaycast && length <= (playerPosition - Position).Length);
+
+            return validRaycast;
+        }
+
         public override float[] GenerateOpenGLData(Vector3 playerRotation)
         {
             if (!alive)
@@ -133,7 +219,7 @@ namespace Game1
     public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Item)
     {
         public new bool alive = true;
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level)
         {
             health += healthChange;
         }

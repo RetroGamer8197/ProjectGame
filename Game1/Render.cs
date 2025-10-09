@@ -9,7 +9,7 @@ namespace Game1
         private int VertexBufferObject, VertexArrayObject;
         private double tintDuration = -1;
         public Shader levelShader;
-        private Texture levelTextureAtlas, hudAtlas, entityAtlas;
+        private Texture levelTextureAtlas, hudAtlas, entityAtlas, mainMenuImage;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Renderer()
@@ -32,6 +32,7 @@ namespace Game1
             levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
             hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
             entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
+            mainMenuImage = new("Textures/mainmenu.png", TextureUnit.Texture3, true);
 
             // load and initialise the shader program
             levelShader = new("Shaders/level.vert", "Shaders/level.frag");
@@ -65,13 +66,26 @@ namespace Game1
         {
             GL.Disable(EnableCap.DepthTest);
 
-            float[] MainMenu = [];
+            float[] MainMenu = [-1, -1, 0, 0, 0, 1.0f,
+                                -1, 1, 0, 0, 1, 1.0f,
+                                1, -1, 0, 1, 0, 1.0f,
+
+                                /*-1, -1, 0, 0, 0, 1.0f,
+                                1, -1, 0, 1, 0, 1.0f,
+                                1, -1, 0, 1, 1, 1.0f,*/
+
+                                -1, 1, 0, 0, 1, 1.0f,
+                                1, 1, 0, 1, 1, 1.0f,
+                                1, -1, 0, 1, 0, 1.0f,
+                                ];
+            levelShader.SetInt("textureAtlas", 3);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             GL.BufferData(BufferTarget.ArrayBuffer, MainMenu.Length * sizeof(float), MainMenu, BufferUsageHint.StreamDraw);
 
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, MainMenu.Length / 6);
         }
 
         public void RenderLevelFrame(Player player, Level levelStore, HUD HUD_Object, float WINDOW_WIDTH, float WINDOW_HEIGHT)

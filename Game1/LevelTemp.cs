@@ -131,6 +131,33 @@ namespace Game1
             levelStore.levelObjects.Add(new Door((3, 0, 18.25f), 0.5f, 1.0f, 0.25f, 3, HeldItem.Colors.Blue, false));
             levelStore.levelObjects.Add(new Button((4f, 0, 17.99f), (0, 0, -1.0f), 0.5f, 0.5f, 4, 5, 0.8f, HeldItem.Colors.Blue));
 
+            // exit room
+            levelStore.levelObjects.Add(new Cube((2, -0.75f, 19.5f), 2.0f, 0.5f, 2.0f, 6));
+            levelStore.levelObjects.Add(new Cube((4, -0.75f, 19.5f), 2.0f, 0.5f, 2.0f, 6));
+
+            levelStore.levelObjects.Add(new Cube((2, -0.75f, 21.5f), 2.0f, 0.5f, 2.0f, 6));
+            levelStore.levelObjects.Add(new Cube((4, -0.75f, 21.5f), 2.0f, 0.5f, 2.0f, 6));
+
+
+            levelStore.levelObjects.Add(new Cube((5.25f, 1f, 19.5f), 0.5f, 1.0f, 2.0f, 5));
+            levelStore.levelObjects.Add(new Cube((5.25f, 0f, 19.5f), 0.5f, 1.0f, 2.0f, 5));
+
+            levelStore.levelObjects.Add(new Cube((5.25f, 1f, 21.5f), 0.5f, 1.0f, 2.0f, 5));
+            levelStore.levelObjects.Add(new Cube((5.25f, 0f, 21.5f), 0.5f, 1.0f, 2.0f, 5));
+
+
+            levelStore.levelObjects.Add(new Cube((0.75f, 1f, 19.5f), 0.5f, 1.0f, 2.0f, 5));
+            levelStore.levelObjects.Add(new Cube((0.75f, 0f, 19.5f), 0.5f, 1.0f, 2.0f, 5));
+
+            levelStore.levelObjects.Add(new Cube((0.75f, 1f, 21.5f), 0.5f, 1.0f, 2.0f, 5));
+            levelStore.levelObjects.Add(new Cube((0.75f, 0f, 21.5f), 0.5f, 1.0f, 2.0f, 5));
+
+            levelStore.levelObjects.Add(new Cube((2f, 1f, 22.75f), 2.0f, 1.0f, 0.5f, 5));
+            levelStore.levelObjects.Add(new Cube((2f, 0f, 22.75f), 2.0f, 1.0f, 0.5f, 5));
+
+            levelStore.levelObjects.Add(new Cube((4f, 1f, 22.75f), 2.0f, 1.0f, 0.5f, 5));
+            levelStore.levelObjects.Add(new Cube((4f, 0f, 22.75f), 2.0f, 1.0f, 0.5f, 5));
+
             levelStore.Sync_GL_Level();
 
             levelStore.ExportToFile("Levels/level1.lvl");
