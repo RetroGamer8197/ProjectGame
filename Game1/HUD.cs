@@ -95,10 +95,11 @@ namespace Game1
         }
     }
 
-    public class HealthBar(float maxValueIn, Vector3 centreIn) : HUD_Element((0, 0), (1, 1), true, HUD_ElementType.HealthBar)
+    public class HealthBar(float maxValueIn, Vector3 centreIn, int textureIndexIn) : HUD_Element((0, 0), (1, 1), true, HUD_ElementType.HealthBar)
     {
         float shownValue = maxValueIn;
         readonly float maxValue = maxValueIn;
+        readonly int textureIndex = textureIndexIn;
         Vector3 centre = centreIn;
         public override void UpdateValue(float value)
         {
@@ -133,7 +134,7 @@ namespace Game1
                 }
             }
 
-            Plane p2 = new(centre + ((0.49f * 0.5f * (shownValue / maxValue)) - (0.49f * 0.5f), 0, 0), (0, 0, 1), 0.49f * (shownValue / maxValue), 0.040f, 2, 1.0f);
+            Plane p2 = new(centre + ((0.49f * 0.5f * (shownValue / maxValue)) - (0.49f * 0.5f), 0, 0), (0, 0, 1), 0.49f * (shownValue / maxValue), 0.040f, textureIndex, 1.0f);
             foreach (Triangle triangle in p2.ConvertToTriangles())
             {
                 for (int i = 0; i < 3; i++)
@@ -147,7 +148,7 @@ namespace Game1
 
     public class AmmoUsageIndicator : HealthBar
     {
-        public AmmoUsageIndicator() : base(1.0f, (0.7f, -0.8f, 0))
+        public AmmoUsageIndicator() : base(1.0f, (0.7f, -0.8f, 0), 3)
         {
         }
     }

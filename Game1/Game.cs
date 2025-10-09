@@ -62,8 +62,8 @@ namespace Game1
 
             // crosshair
             HUD_Object.AddHUD_Element(new Crosshair());
-            HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.8f, 0)));
-            HUD_Object.AddHUD_Element(new HealthBar(1.0f, (0.7f, -0.8f, 0)));
+            HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.8f, 0), 2));
+            HUD_Object.AddHUD_Element(new HealthBar(1.0f, (0.7f, -0.8f, 0), 3));
 
             //GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
 
