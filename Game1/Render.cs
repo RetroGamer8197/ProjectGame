@@ -88,7 +88,7 @@ namespace Game1
             GL.DrawArrays(PrimitiveType.Triangles, 0, MainMenu.Length / 6);
         }
 
-        public void RenderLevelFrame(Player player, Level levelStore, HUD HUD_Object, float WINDOW_WIDTH, float WINDOW_HEIGHT)
+        public void RenderLevelFrame(Player player, ref Level levelStore, HUD HUD_Object, float WINDOW_WIDTH, float WINDOW_HEIGHT)
         {
             GL.Enable(EnableCap.DepthTest);     // when drawing level geometry, we need the depth buffer enabled so that the triangles are drawn in the correct order 
 
@@ -132,7 +132,7 @@ namespace Game1
                 if (objEntity.objectType == Object.ObjectType.Entity)
                 {
                     entityTemp = (Entity)objEntity;
-                    if (entityTemp.alive == true)
+                    if (entityTemp.getAliveState() == true)
                     {
                         GL_Entity.AddRange(entityTemp.GenerateOpenGLData(player.upRotation + player.moveRotation));
                     }

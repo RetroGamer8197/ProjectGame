@@ -100,11 +100,18 @@ namespace Game1
                     }
 
                     player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer);
+                    foreach (Object levelObject in levelStore.levelObjects)
+                    {
+                        if (levelObject.objectType == Object.ObjectType.Entity)
+                        {
+                            levelObject.Tick(player.Position, ref player.Health, (float)e.Time, ref levelStore, ref player);
+                        }
+                    }
                     CursorState = temp_cstate;
 
                     // manage tinting for flash
                     renderer.TintTick(e.Time);
-                    HUD_Object.HUD_Elements[1].DecreaseValue(0.1f);
+                    HUD_Object.HUD_Elements[1].UpdateValue(player.Health);
                     HUD_Object.HUD_Elements[2].UpdateValue(player.GetCurrentWeaponMagUsage());
                     break;
                 case GameState.Pause:
@@ -123,10 +130,10 @@ namespace Game1
                     break;
                 case GameState.Level:
                     // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
-                    renderer.RenderLevelFrame(player, levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
                     break;
                 case GameState.Pause:
-                    renderer.RenderLevelFrame(player, levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
                     break;
             }
             

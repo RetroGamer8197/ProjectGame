@@ -8,10 +8,12 @@ namespace Game1
     {
         public Vector3 Position, Scale, hCollisionScale, vCollisionScale;
         public Vector3 upRotation, moveRotation;
-        List<HeldItem> Inventory = [new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard },
+        public List<HeldItem> Inventory = [];/*[new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard },
                                     new HeldItem() {color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard}
-                                    ];
+                                    ];*/
         public float Health;
+        public bool Invincibility = false;
+        public float InvincibilityTimer = 0.0f;
         float yVelocity = 0f;
         int weaponIndex = 0;
 
@@ -33,6 +35,14 @@ namespace Game1
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             bool jumping = false;
+            if (Invincibility)
+            {
+                InvincibilityTimer -= deltaTime;
+            }
+            if (InvincibilityTimer < 0.0f)
+            {
+                Invincibility = false;
+            }
 
             // very long delta times, such as slow frames or debugging causes objects to fly out of the level so clamping the delta time
             // means this won't happen
@@ -156,12 +166,7 @@ namespace Game1
                         }
                     }
                 }
-                else
-                {
-                    levelObject.Tick(Position, ref Health, deltaTime, ref levelStore);
-                }
-
-
+                
             }
 
             if (grounded && !jumping)

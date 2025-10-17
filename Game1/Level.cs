@@ -20,7 +20,7 @@ namespace Game1 {
             return false;
         }
 
-        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level)
+        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
         {
 
         }
@@ -689,7 +689,7 @@ namespace Game1 {
 
                             case Entity.EntityType.Item:
                                 level.levelObjects.Add(new Item((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean()));
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), (Item.ItemsEnum)levelFile.ReadByte()));
                                 break;
 
                         }
@@ -780,6 +780,7 @@ namespace Game1 {
                                 levelOutput.Write(itemTemp.textureIndex);
                                 levelOutput.Write(itemTemp.healthChange);
                                 levelOutput.Write(itemTemp.pathfinding);
+                                levelOutput.Write((byte)itemTemp.returnItem);
                                 break;
                         }
                         break;

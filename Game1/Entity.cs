@@ -16,7 +16,7 @@ namespace Game1
         public int textureIndex, healthChange;
         public bool pathfinding;
         public EntityType entityType;
-        public bool alive = true;
+        protected bool alive = true;
         public Entity(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn, EntityType entityTypeIn)
         {
             objectType = ObjectType.Entity;
@@ -27,6 +27,10 @@ namespace Game1
             healthChange = healthChangeIn;
             pathfinding = pathfindingIn;
             origin = position;
+        }
+        public virtual bool getAliveState()
+        {
+            return alive;
         }
 
         public virtual float[] GenerateOpenGLData(Vector3 playerRotation)
@@ -54,14 +58,14 @@ namespace Game1
     {
         float health = maxHealth;
         public float maxHealth = maxHealth;
-        public new bool alive = true;
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level)
+
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
         {
             if (!alive)
             {
                 return;
             }
-            Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
+            Vector3 directionVector = (Position.X - playerPosition.X, 0, Position.Z - playerPosition.Z);
 
             if (RaycastToPlayer(playerPosition, ref level) || (directionVector.LengthSquared > 25))
             {
@@ -89,6 +93,12 @@ namespace Game1
             if ((Position - playerPosition).LengthSquared < 0.1f)
             {
                 Position = origin;
+                if (!player.Invincibility)
+                {
+                    player.Health -= 5;
+                    player.Invincibility = true;
+                    player.InvincibilityTimer = 0.5f;
+                }
             }
         }
 
@@ -121,7 +131,6 @@ namespace Game1
 
         public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
         {
-            // interact type is true if it is an interaction and false if it is an attack
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
             float stepScale = 1 / 100f;
             bool validRaycast = false;
@@ -216,12 +225,62 @@ namespace Game1
         }
     }
 
-    public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Item)
+    public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn, Item.ItemsEnum returnItemIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Item)
     {
-        public new bool alive = true;
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level)
+        public enum ItemsEnum
         {
-            health += healthChange;
+            RedKeycard, GreenKeycard, BlueKeycard, YellowKeycard, SmallMedkit, LargeMedkit, SmallAmmo, ShellPack, MediumAmmo, LargeAmmo,
+        }
+
+        public ItemsEnum returnItem = returnItemIn;
+
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        {
+            if (!alive)
+            {
+                return;
+            }
+
+            if (float.IsNaN(Position.X))
+            {
+                Console.WriteLine();
+            }
+            if ((Position - playerPosition).LengthSquared < 0.1f)
+            {
+                switch (returnItem)
+                {
+                    case ItemsEnum.RedKeycard:
+                        player.Inventory.Add(new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard });
+                        alive = false;
+                        break;
+                    case ItemsEnum.GreenKeycard:
+                        player.Inventory.Add(new HeldItem() { color = HeldItem.Colors.Green, itemType = HeldItem.ItemTypes.Keycard });
+                        alive = false;
+                        break;
+                    case ItemsEnum.BlueKeycard:
+                        player.Inventory.Add(new HeldItem() { color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard });
+                        alive = false;
+                        break;
+                    case ItemsEnum.YellowKeycard:
+                        player.Inventory.Add(new HeldItem() { color = HeldItem.Colors.Yellow, itemType = HeldItem.ItemTypes.Keycard });
+                        alive = false;
+                        break;
+                    case ItemsEnum.SmallMedkit:
+                        if (player.Health < 100f)
+                        {
+                            player.Health = Math.Clamp(player.Health + 10, 0, 100);
+                            alive = false;
+                        }
+                        break;
+                    case ItemsEnum.LargeMedkit:
+                        if (player.Health < 100f)
+                        {
+                            player.Health = Math.Clamp(player.Health + 30, 0, 100);
+                            alive = false;
+                        }
+                        break;
+                }
+            }
         }
     }
 

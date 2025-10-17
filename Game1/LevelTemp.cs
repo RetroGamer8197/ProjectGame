@@ -11,13 +11,15 @@ namespace Game1
             //Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
 
             // room 1 decal
-            levelStore.levelObjects.Add(new Button((0.99f, 0, 0), (-1.0f, 0, 0), 0.5f, 0.5f, 4, 5, 0.8f, HeldItem.Colors.Red));
+            levelStore.levelObjects.Add(new Button((0.75f, 0, 0.99f), (0f, 0, -1.0f), 0.25f, 0.25f, 7, 8, 0.8f, HeldItem.Colors.Red));
 
             // room 1
             levelStore.levelObjects.Add(new Cube((0, 0, -1.25f), 2.0f, 1.0f, 0.5f, 4)); // back wall
-                                                                                        // side walls
-            levelStore.levelObjects.Add(new Cube((0.625f, 0, 1.125f), 0.75f, 1.0f, 0.25f, 0));
-            levelStore.levelObjects.Add(new Cube((-0.625f, 0, 1.125f), 0.75f, 1.0f, 0.25f, 0));
+            levelStore.levelObjects.Add(new Item((0, -0.25f, -0.75f), (0.25f, 0.25f), 3, 0, false, Item.ItemsEnum.RedKeycard));
+
+            // side walls
+            levelStore.levelObjects.Add(new Cube((1.5f, 0f, 1.125f), 2.0f, 1.0f, 0.25f, 0));
+            levelStore.levelObjects.Add(new Cube((-1.5f, 0f, 1.125f), 2.0f, 1.0f, 0.25f, 0));
 
             // exit walls
             levelStore.levelObjects.Add(new Cube((-1.25f, 0, 0), 0.5f, 1.0f, 2.0f, 0));
@@ -26,13 +28,15 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 0), 3.0f, 0.5f, 3.0f, 1));
             levelStore.levelObjects.Add(new Cube((0, 0.75f, 0), 2.5f, 0.5f, 2.5f, 3));
 
-            levelStore.levelObjects.Add(new Door((0, 0, 1.25f), 0.5f, 1.0f, 0.25f, 0, HeldItem.Colors.Red, false));
+            levelStore.levelObjects.Add(new Door((0, 0, 1.25f), 1.0f, 1.0f, 0.25f, 9, HeldItem.Colors.Red, false));
 
             // outside room 1
 
+            levelStore.levelObjects.Add(new Item((0, -0.25f, 1.5f), (0.25f, 0.25f), 2, 0, false, Item.ItemsEnum.LargeMedkit));
+
             // entrance walls
-            levelStore.levelObjects.Add(new Cube((1.25f, 0f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
-            levelStore.levelObjects.Add(new Cube((-1.25f, 0f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
+            levelStore.levelObjects.Add(new Cube((1.5f, 0f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
+            levelStore.levelObjects.Add(new Cube((-1.5f, 0f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
             levelStore.levelObjects.Add(new Cube((1f, 1f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
             levelStore.levelObjects.Add(new Cube((-1f, 1f, 1.375f), 2.0f, 1.0f, 0.25f, 5));
 
@@ -123,13 +127,14 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((0f, 0f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
 
             // exit walls
-            levelStore.levelObjects.Add(new Cube((1.875f, 0f, 18.25f), 1.75f, 1.0f, 0.5f, 5));
-            levelStore.levelObjects.Add(new Cube((4.125f, 0f, 18.25f), 1.75f, 1.0f, 0.5f, 5));
+            levelStore.levelObjects.Add(new Cube((2.0f, 0f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
+            levelStore.levelObjects.Add(new Cube((5.0f, 0f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((2f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
-            levelStore.levelObjects.Add(new Cube((4f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
+            levelStore.levelObjects.Add(new Cube((4.0f, 1f, 18.25f), 2.0f, 1.0f, 0.5f, 5));
 
-            levelStore.levelObjects.Add(new Door((3, 0, 18.25f), 0.5f, 1.0f, 0.25f, 3, HeldItem.Colors.Blue, false));
-            levelStore.levelObjects.Add(new Button((4f, 0, 17.99f), (0, 0, -1.0f), 0.5f, 0.5f, 4, 5, 0.8f, HeldItem.Colors.Blue));
+            levelStore.levelObjects.Add(new Door((3.5f, 0, 18.25f), 1.0f, 1.0f, 0.25f, 9, HeldItem.Colors.Blue, false));
+            levelStore.levelObjects.Add(new Item((3.5f, -0.25f, 17.5f), (0.25f, 0.25f), 4, 0, false, Item.ItemsEnum.BlueKeycard));
+            levelStore.levelObjects.Add(new Button((4.25f, 0, 17.99f), (0, 0, -1.0f), 0.25f, 0.25f, 7, 8, 0.8f, HeldItem.Colors.Blue));
 
             // exit room
             levelStore.levelObjects.Add(new Cube((2, -0.75f, 19.5f), 2.0f, 0.5f, 2.0f, 6));
