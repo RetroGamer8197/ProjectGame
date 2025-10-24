@@ -24,8 +24,8 @@ namespace Game1
         {
             Position = positionIn;
             Scale = scaleIn;
-            hCollisionScale = (Scale.X, Scale.Y * 0.9f, Scale.Z);
-            vCollisionScale = (Scale.X * 0.9f, Scale.Y, Scale.Z * 0.9f);
+            hCollisionScale = (Scale.X, Scale.Y * 0.6f, Scale.Z);
+            vCollisionScale = (Scale.X * 0.6f, Scale.Y, Scale.Z * 0.6f);
             moveRotation = moveRotationIn;
             Health = healthIn;
             upRotation = new(0);

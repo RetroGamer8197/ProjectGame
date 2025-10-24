@@ -50,7 +50,12 @@ namespace Game1
 
             base.OnLoad();
 
-            renderer = new();
+            renderer = new(out bool rendererInitSuccess);
+            if (!rendererInitSuccess)
+            {
+                Console.WriteLine("\nFatal error initialising Renderer");
+                Close();
+            }
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
             //Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);

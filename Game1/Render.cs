@@ -11,14 +11,19 @@ namespace Game1
         public Shader levelShader;
         private Texture levelTextureAtlas, hudAtlas, entityAtlas, mainMenuImage;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public Renderer()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        protected struct FilesState
         {
-            Init();
+            public string levelAtlas, hudAtlas, entityAtlas, mainMenuImage;
         }
 
-        public void Init()
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Renderer(out bool success)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            success = Init();
+        }
+
+        public bool Init()
         {
             GL.ClearColor(0.2f, 0.2f, 0.5f, 1.0f);
 
@@ -28,14 +33,36 @@ namespace Game1
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
 
-            // load all texture atlases into the VRAM
-            levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
-            hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
-            entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
-            mainMenuImage = new("Textures/mainmenu.png", TextureUnit.Texture3, true);
+            // check the presence of all texture files and load all texture atlases into the VRAM
+            string currentFileName = "";
+            try
+            {
+                currentFileName = "Textures/atlas.png";
+                levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
+
+                currentFileName = "Textures/hudatlas.png";
+                hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
+
+                currentFileName = "Textures/entityAtlas.png";
+                entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
+
+                currentFileName = "Textures/mainmenu.png";
+                mainMenuImage = new("Textures/mainmenu.png", TextureUnit.Texture3, true);
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("Missing texture file(s):");
+                Console.WriteLine("\t" + currentFileName);
+                return false;
+            }
+
 
             // load and initialise the shader program
-            levelShader = new("Shaders/level.vert", "Shaders/level.frag");
+            levelShader = new("Shaders/level.vert", "Shaders/level.frag", out bool success);
+            if (!success)
+            {
+                return false;
+            }
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
 
             // set up the vertex attributes so the shader can see and use them
@@ -61,6 +88,8 @@ namespace Game1
 
             // enable the depth buffer for triangle sorting
             GL.Enable(EnableCap.DepthTest);
+
+            return true;
         }
         public void RenderMainMenu()
         {
@@ -188,8 +217,10 @@ namespace Game1
         {
             GL.DeleteBuffer(VertexBufferObject);
             GL.DeleteBuffer(VertexArrayObject);
-
-            levelShader.Dispose();
+            if (levelShader != null)
+            {
+                levelShader.Dispose();   
+            }
         }
 
         public void FlashColorTint(Vector4 color)

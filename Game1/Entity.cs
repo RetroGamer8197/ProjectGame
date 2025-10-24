@@ -1,5 +1,7 @@
 using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL4;
+using System.Reflection.Metadata.Ecma335;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game1
 {
@@ -65,18 +67,16 @@ namespace Game1
             {
                 return;
             }
-            Vector3 directionVector = (Position.X - playerPosition.X, 0, Position.Z - playerPosition.Z);
+            Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
 
-            if (RaycastToPlayer(playerPosition, ref level) || (directionVector.LengthSquared > 25))
+            // check if the enemy has line of sight with the player
+            if (!RaycastToPlayer(playerPosition, ref level) || !pathfinding)// || (directionVector.LengthSquared > 25))
             {
-                directionVector = (new Random().Next(-5, 5), 0, new Random().Next(-5, 5));
+                directionVector = (0,0,0); //(new Random().Next(-5, 5), 0, new Random().Next(-5, 5));
             }
             else
             {
-                /*if (new Random().Next(0, 50) > 30)
-                {
-                    Position += Vector3.Normalize(Vector3.Cross(directionVector, Vector3.UnitY)) * new Random().Next(-1, 2) * Game.speed / 4;
-                }*/
+
             }
 
             if (directionVector.LengthSquared > 0)
@@ -85,6 +85,16 @@ namespace Game1
             }
 
             Position += directionVector * Game.speed * deltaTime / 4;
+            
+            bool collided = false;
+            foreach (Object o in level.levelObjects)
+            {
+                collided |= CheckCollision(Position, (scale.X, scale.Y * 0.9f, scale.X));
+            }
+            if (collided)
+            {
+                Position -= directionVector * Game.speed * deltaTime / 4;
+            }
 
             if (float.IsNaN(Position.X))
             {
@@ -129,7 +139,109 @@ namespace Game1
             }
         }
 
+        /*public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
+        {
+            if ((Position - playerPosition).Length > 5f)
+            {
+                return false;
+            }
+
+            Vector3 stepInDirection = Vector3.Normalize(Position - playerPosition) * 0.01f;
+            Vector3 currentPosition = Position;
+
+            for (int i = 0; i < (Position - playerPosition).Length / 0.01f; i++)
+            {
+                currentPosition += stepInDirection;
+
+                foreach (Object O in level.levelObjects)
+                {
+                    if (O.CheckClickedCollision(currentPosition, 0.01f, out float distance) && O.objectType != ObjectType.Entity)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }*/
+
         public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
+        {
+            float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
+            float stepScale = 1 / 100f;
+            Vector3 direction = Vector3.Normalize(playerPosition - Position);
+            float stepX = float.Sign(direction.X) * stepScale, stepY = float.Sign(direction.Y) * stepScale, stepZ = float.Sign(direction.Z) * stepScale;
+            Vector3 checkPosition = Player.FloorPosition(Position, stepScale);
+            Vector3 RealPosition = Position;
+
+            float modulus = 1;
+
+            float maxDistance = (RealPosition - playerPosition).Length;
+            if (maxDistance > 5)
+            {
+                return false;
+            }
+
+            tDeltaX = Math.Abs(stepScale / direction.X);
+            tDeltaY = Math.Abs(stepScale / direction.Y);
+            tDeltaZ = Math.Abs(stepScale / direction.Z);
+
+            if (checkPosition.X - RealPosition.X == 0 && checkPosition.Y - RealPosition.Y == 0 && checkPosition.Y - RealPosition.Y == 0)
+            {
+                tMaxX = tDeltaX;
+                tMaxY = tDeltaY;
+                tMaxZ = tDeltaZ;
+            }
+            else
+            {
+                tMaxX = Math.Abs((checkPosition.X + stepX - RealPosition.X) % modulus / direction.X);
+                tMaxY = Math.Abs((checkPosition.Y + stepY - RealPosition.Y) % modulus / direction.Y);
+                tMaxZ = Math.Abs((checkPosition.Z + stepZ - RealPosition.Z) % modulus / direction.Z);
+            }
+
+            while ((checkPosition - RealPosition).Length < maxDistance)
+            {
+                if (tMaxX < tMaxY)
+                {
+                    if (tMaxX < tMaxZ)
+                    {
+                        tMaxX += tDeltaX;
+                        checkPosition.X += stepX;
+                    }
+                    else
+                    {
+                        tMaxZ += tDeltaZ;
+                        checkPosition.Z += stepZ;
+                    }
+                }
+                else
+                {
+                    if (tMaxY < tMaxZ)
+                    {
+                        tMaxY += tDeltaY;
+                        checkPosition.Y += stepY;
+                    }
+                    else
+                    {
+                        tMaxZ += tDeltaZ;
+                        checkPosition.Z += stepZ;
+                    }
+                }
+
+                float distance;
+                foreach (Object O in level.levelObjects)
+                {
+                    if (O.objectType != ObjectType.Entity && O.CheckClickedCollision(checkPosition, stepScale, out distance) && distance < 0.05f)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /*public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
         {
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
             float stepScale = 1 / 100f;
@@ -212,7 +324,7 @@ namespace Game1
             } while (!validRaycast && length <= (playerPosition - Position).Length);
 
             return validRaycast;
-        }
+        }*/
 
         public override float[] GenerateOpenGLData(Vector3 playerRotation)
         {
