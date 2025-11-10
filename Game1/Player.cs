@@ -31,7 +31,7 @@ namespace Game1
             upRotation = new(0);
         }
 
-        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer)
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref Game.GameState gameState)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             bool jumping = false;
@@ -48,9 +48,9 @@ namespace Game1
             // means this won't happen
             deltaTime = Math.Clamp(deltaTime, 0.0f, 0.1f);
 
-            if (keyboardState.IsKeyDown(Keys.Escape))
+            if (keyboardState.IsKeyPressed(Keys.Escape))
             {
-                game.Close();
+                gameState = Game.GameState.Pause;
             }
 
             // multiplying by delta time unhooks movement and turn speed from the frame rate, meaning slow frame rates will not make the game itself feel slow

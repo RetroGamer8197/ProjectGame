@@ -5,12 +5,13 @@ namespace Game1
     public class HUD
     {
         public List<HUD_Element> HUD_Elements;
-        public float[] HUD_GL;
+        public float[] HUD_GL, TextElementGL;
 
         public HUD()
         {
             HUD_Elements = [];
             HUD_GL = [];
+            TextElementGL = [];
         }
         public void AddHUD_Element(HUD_Element element)
         {
@@ -19,31 +20,39 @@ namespace Game1
 
         public void SyncHUD_GL(float aspectRatio)
         {
-            HUD_GL = GenerateGL_Data(aspectRatio);
+            GenerateGL_Data(aspectRatio);
         }
 
-        private float[] GenerateGL_Data(float aspectRatio)
+        private void GenerateGL_Data(float aspectRatio)
         {
-            List<float> GL_Data = [];
+            List<float> HUD_GL_Data = [], Text_GL_Data = [];
 
             foreach (HUD_Element element in HUD_Elements)
             {
-                GL_Data.AddRange(element.GenerateGL_Data(aspectRatio));
+                if (element.elementType != HUD_Element.HUD_ElementType.Text)
+                {
+                    HUD_GL_Data.AddRange(element.GenerateGL_Data(aspectRatio));
+                }
+                else
+                {
+                    Text_GL_Data.AddRange(element.GenerateGL_Data(aspectRatio));
+                }
             }
 
-            return [.. GL_Data];
+            HUD_GL = [.. HUD_GL_Data];
+            TextElementGL = [.. Text_GL_Data];
         }
     }
 
     public class HUD_Element(Vector2 centre, Vector2 scale, bool doesAspectRatioAffect, HUD_Element.HUD_ElementType thisElementType)
     {
-        Vector2 centreCoord = centre;
-        Vector2 widthHeightScale = scale;
-        bool aspectRatioAffect = doesAspectRatioAffect;
+        protected Vector2 centreCoord = centre;
+        protected Vector2 widthHeightScale = scale;
+        protected bool aspectRatioAffect = doesAspectRatioAffect;
         public HUD_ElementType elementType = thisElementType;
         public enum HUD_ElementType
         {
-            Crosshair, HealthBar, Menu, Icon
+            Crosshair, HealthBar, Menu, Icon, Text
         }
 
         public virtual float[] GenerateGL_Data(float aspectRatio)
@@ -144,6 +153,71 @@ namespace Game1
             }
             return [.. gl_data];
         }
+    }
+
+    public class Background(int textureIndexIn) : HUD_Element((-0.6f, 0.0f), (0.8f, 2.0f), false, HUD_ElementType.Menu)
+    {
+        private int textureIndex = textureIndexIn;
+        public override float[] GenerateGL_Data(float aspectRatio)
+        {
+            List<float> gl_data = [];
+
+            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y, textureIndexIn, 1.0f);
+            foreach (Triangle triangle in p2.ConvertToTriangles())
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
+                }
+            }
+            return [.. gl_data];
+        }
+    }
+    
+    public class TextElement: HUD_Element
+    {
+        Vector2 topLeftCoordinate;
+        float size;
+        public string text;
+        readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
+
+        public TextElement(Vector2 alignCoordinate, float textSize, string characters, bool centreAlign) : base ((0,0), (1,1), false, HUD_ElementType.Text)
+        {
+            size = textSize;
+            text = characters;
+            
+            if (centreAlign)
+            {
+                topLeftCoordinate = alignCoordinate - (Vector2.UnitX * (characters.Length * size / 2));
+            } else
+            {
+                topLeftCoordinate = alignCoordinate;
+            }
+        }
+        
+        public override float[] GenerateGL_Data(float aspectRatio)
+        {
+            List<float> vertexData = [];
+            int i = 0;
+            foreach (char c in text)
+            {
+                Vector2[] textureCoordinates = Text.ReturnNewCharUV(c);
+                Vector2[] vertices = [
+                    topLeftCoordinate + (Vector2.UnitX * size * i),
+                    topLeftCoordinate + (Vector2.UnitX * size * i) + (Vector2.UnitY * size * aspectRatio),
+                    topLeftCoordinate + (Vector2.UnitX * size * (i + 1)) + (Vector2.UnitY * size * aspectRatio),
+                    topLeftCoordinate + (Vector2.UnitX * size * (i + 1)),
+                ];
+                foreach (int index in coordinateIndices)
+                {
+                    vertexData.AddRange(vertices[index].X, vertices[index].Y, 0.0f, textureCoordinates[index].X, textureCoordinates[index].Y, 1.0f);
+                }
+                i++;
+            }
+
+            return [.. vertexData];
+        }
+
     }
 
     public class AmmoUsageIndicator : HealthBar

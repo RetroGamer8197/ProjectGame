@@ -24,7 +24,7 @@ namespace Game1
         public GameState gameState = GameState.Menu;
 
         private Level levelStore;
-        private HUD HUD_Object;
+        private HUD HUD_Object, PauseMenu;
 
 
         Renderer renderer;
@@ -58,9 +58,9 @@ namespace Game1
             }
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
-            //Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
-            levelStore = LevelTemp.levelReturn();
-            levelStore.ExportToFile("Levels/level2.lvl");
+            Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
+            //levelStore = LevelTemp.levelReturn();
+            //levelStore.ExportToFile("Levels/level2.lvl");
 
             // --- HUD ---
             HUD_Object = new();
@@ -69,6 +69,13 @@ namespace Game1
             HUD_Object.AddHUD_Element(new Crosshair());
             HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.8f, 0), 2));
             HUD_Object.AddHUD_Element(new HealthBar(1.0f, (0.7f, -0.8f, 0), 3));
+
+            // --- Pause Menu ---
+            PauseMenu = new();
+
+            PauseMenu.AddHUD_Element(new Background(5));
+            PauseMenu.AddHUD_Element(new TextElement((-0.6f, 0.7f), 32f / 720f, "Pause Menu", true));
+            PauseMenu.AddHUD_Element(new TextElement((-0.6f, 0.4f), 32f / 720f, "Press - to quit", true));
 
             //GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
 
@@ -104,7 +111,7 @@ namespace Game1
                         levelStore.levelObjects[i].CheckObjectStateIsCorrect(ref levelStore);
                     }
 
-                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer);
+                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer, ref gameState);
                     foreach (Object levelObject in levelStore.levelObjects)
                     {
                         if (levelObject.objectType == Object.ObjectType.Entity)
@@ -120,7 +127,13 @@ namespace Game1
                     HUD_Object.HUD_Elements[2].UpdateValue(player.GetCurrentWeaponMagUsage());
                     break;
                 case GameState.Pause:
-
+                    if (KeyboardState.IsKeyPressed(Keys.Escape))
+                    {
+                        gameState = GameState.Level;
+                    } else if (KeyboardState.IsKeyPressed(Keys.Minus))
+                    {
+                        Close();
+                    }
                     break;
             }
         }
@@ -138,7 +151,7 @@ namespace Game1
                     renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
                     break;
                 case GameState.Pause:
-                    renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    renderer.RenderLevelFrame(player, ref levelStore, PauseMenu, WINDOW_WIDTH, WINDOW_HEIGHT);
                     break;
             }
             

@@ -9,7 +9,7 @@ namespace Game1
         private int VertexBufferObject, VertexArrayObject;
         private double tintDuration = -1;
         public Shader levelShader;
-        private Texture levelTextureAtlas, hudAtlas, entityAtlas, mainMenuImage;
+        private Texture levelTextureAtlas, hudAtlas, entityAtlas, mainMenuImage, font;
 
         protected struct FilesState
         {
@@ -48,6 +48,9 @@ namespace Game1
 
                 currentFileName = "Textures/mainmenu.png";
                 mainMenuImage = new("Textures/mainmenu.png", TextureUnit.Texture3, true);
+
+                currentFileName = "Textures/font.png";
+                font = new("Textures/font.png", TextureUnit.Texture4, true);
             }
             catch (FileNotFoundException)
             {
@@ -211,6 +214,21 @@ namespace Game1
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);  // we can reuse the level shader by adding all relevant parameters in such as way that the vertex shader applies no transformations and the fragment shader applies no shading (shaded dir = 1.0f)
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, HUD_Object.HUD_GL.Length / 6); // finally, we can tell the GPU to draw the HUD
+
+            // Change texture atlas to the correct atlas for the Text
+            GL.BufferData(BufferTarget.ArrayBuffer, HUD_Object.TextElementGL.Length * sizeof(float), HUD_Object.TextElementGL, BufferUsageHint.StreamDraw);
+            
+            font.Use(TextureUnit.Texture4);
+            levelShader.SetInt("textureAtlas", 4);
+
+            levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);  // we can reuse the level shader by adding all relevant parameters in such as way that the vertex shader applies no transformations and the fragment shader applies no shading (shaded dir = 1.0f)
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, HUD_Object.TextElementGL.Length / 6); // finally, we can tell the GPU to draw the HUD
+        }
+
+        public void RenderPauseMenuFrame(Player player, ref Level levelStore, HUD HUD_Object, HUD PauseMenu, float WINDOW_WIDTH, float WINDOW_HEIGHT)
+        {
+            RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);      // render the level in the background of the pause menu
         }
 
         public void Dispose()
