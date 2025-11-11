@@ -260,10 +260,15 @@ namespace Game1 {
 
             Vector2[] TextureCoordinates =
             [
-                new(textureIndex % 4 * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
+                new(textureIndex % 4 * 0.25f + 0.00390625f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
+                new(textureIndex % 4 * 0.25f + 0.00390625f, (3.99609375f - (textureIndex >> 2)) * 0.25f),
+                new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.99609375f - (textureIndex >> 2)) * 0.25f),
+                new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
+
+                /*new(textureIndex % 4 * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
                 new(textureIndex % 4 * 0.25f, (4 - (textureIndex >> 2)) * 0.25f),
                 new((1 + (textureIndex % 4)) * 0.25f, (4 - (textureIndex >> 2)) * 0.25f),
-                new((1 + (textureIndex % 4)) * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
+                new((1 + (textureIndex % 4)) * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),*/
             ];
 
             returnTriangles[0] = new(RectangleCoordinates[0], RectangleCoordinates[1], RectangleCoordinates[2], TextureCoordinates[0..3], directionIndex);
@@ -376,20 +381,6 @@ namespace Game1 {
             button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn, color);
         }
 
-        
-
-        /*public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
-        {
-            bool isCollision = CheckCollision(input, new(stepScale));
-
-            if (isCollision) {
-                distanceFrom = 0;
-            } else {
-                distanceFrom = float.MaxValue;
-            }
-
-            return isCollision;
-        }*/
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
             float distanceAllowedXZ = new Vector2(width / 2, width / 2).LengthSquared;

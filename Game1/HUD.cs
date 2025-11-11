@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using OpenTK.Mathematics;
 
 namespace Game1
@@ -44,12 +45,13 @@ namespace Game1
         }
     }
 
-    public class HUD_Element(Vector2 centre, Vector2 scale, bool doesAspectRatioAffect, HUD_Element.HUD_ElementType thisElementType)
+    public class HUD_Element(Vector2 centre, Vector2 scale, bool doesAspectRatioAffect, HUD_Element.HUD_ElementType thisElementType, bool isEnabledStart)
     {
         protected Vector2 centreCoord = centre;
         protected Vector2 widthHeightScale = scale;
         protected bool aspectRatioAffect = doesAspectRatioAffect;
         public HUD_ElementType elementType = thisElementType;
+        public bool enabled = isEnabledStart;
         public enum HUD_ElementType
         {
             Crosshair, HealthBar, Menu, Icon, Text
@@ -58,6 +60,11 @@ namespace Game1
         public virtual float[] GenerateGL_Data(float aspectRatio)
         {
             return [];
+        }
+
+        public virtual void CheckIfEnabled(List<HeldItem> inventory)
+        {
+            
         }
 
         public virtual void UpdateValue(float input)
@@ -76,7 +83,7 @@ namespace Game1
         }
     }
 
-    public class Crosshair() : HUD_Element((0, 0), (1, 1), false, HUD_ElementType.Crosshair)
+    public class Crosshair() : HUD_Element((0, 0), (1, 1), false, HUD_ElementType.Crosshair, true)
     {
 
         public override float[] GenerateGL_Data(float aspectRatio)
@@ -104,7 +111,7 @@ namespace Game1
         }
     }
 
-    public class HealthBar(float maxValueIn, Vector3 centreIn, int textureIndexIn) : HUD_Element((0, 0), (1, 1), true, HUD_ElementType.HealthBar)
+    public class HealthBar(float maxValueIn, Vector3 centreIn, int textureIndexIn) : HUD_Element((0, 0), (1, 1), true, HUD_ElementType.HealthBar, true)
     {
         float shownValue = maxValueIn;
         readonly float maxValue = maxValueIn;
@@ -155,14 +162,92 @@ namespace Game1
         }
     }
 
-    public class Background(int textureIndexIn) : HUD_Element((-0.6f, 0.0f), (0.8f, 2.0f), false, HUD_ElementType.Menu)
+    public class Background(int textureIndexIn) : HUD_Element((-0.6f, 0.0f), (0.8f, 2.0f), false, HUD_ElementType.Menu, true)
     {
-        private int textureIndex = textureIndexIn;
+        private readonly int textureIndex = textureIndexIn;
         public override float[] GenerateGL_Data(float aspectRatio)
         {
             List<float> gl_data = [];
 
-            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y, textureIndexIn, 1.0f);
+            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y, textureIndex, 1.0f);
+            foreach (Triangle triangle in p2.ConvertToTriangles())
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
+                }
+            }
+            return [.. gl_data];
+        }
+    }
+
+    public class ItemIcon : HUD_Element
+    {
+        readonly int textureIndex;
+        readonly HeldItem checkItem;
+        public ItemIcon(Vector2 position, Vector2 scale, int textureIndexIn, HeldItem checkItemIn) : base(position, scale, true, HUD_ElementType.Icon, false)
+        {
+            textureIndex = textureIndexIn;
+            checkItem = checkItemIn;
+        }
+
+        public override float[] GenerateGL_Data(float aspectRatio)
+        {
+            if (!enabled)
+            {
+                return [];
+            }
+
+            List<float> gl_data = [];
+
+            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y * aspectRatio, textureIndex, 1.0f);
+            foreach (Triangle triangle in p2.ConvertToTriangles())
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
+                }
+            }
+            return [.. gl_data];
+        }
+
+        public override void CheckIfEnabled(List<HeldItem> inventory)
+        {
+            bool contains = false;
+            foreach (HeldItem item in inventory)
+            {
+                if (item.color == checkItem.color && item.itemType == checkItem.itemType)
+                {
+                    contains = true;
+                }
+            }
+            enabled = contains;
+        }
+    }
+    
+    public class WeaponIcon : HUD_Element
+    {
+        public int selectedWeapon = 0;
+        public WeaponIcon() : base((0.7f, -0.6f), (0.2f, 0.2f), true, HUD_ElementType.Icon, true)
+        {
+
+        }
+
+        public override void UpdateValue(float input)
+        {
+            selectedWeapon = (int)input;
+        }
+        
+        public override float[] GenerateGL_Data(float aspectRatio)
+        {
+            if (!enabled)
+            {
+                return [];
+            }
+
+            List<float> gl_data = [];
+
+            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y * aspectRatio, selectedWeapon + 8, 1.0f);
             foreach (Triangle triangle in p2.ConvertToTriangles())
             {
                 for (int i = 0; i < 3; i++)
@@ -181,11 +266,11 @@ namespace Game1
         public string text;
         readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
 
-        public TextElement(Vector2 alignCoordinate, float textSize, string characters, bool centreAlign) : base ((0,0), (1,1), false, HUD_ElementType.Text)
+        public TextElement(Vector2 alignCoordinate, float textSize, string characters, bool centreAlign) : base ((0,0), (1,1), false, HUD_ElementType.Text, false)
         {
             size = textSize;
             text = characters;
-            
+
             if (centreAlign)
             {
                 topLeftCoordinate = alignCoordinate - (Vector2.UnitX * (characters.Length * size / 2));

@@ -172,7 +172,7 @@ namespace Game1
 
     }
 
-    class unusedCode {
+    class UnusedCode {
 
         private readonly float[] HUD_Vertices = [
             // health indicator

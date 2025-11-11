@@ -83,9 +83,6 @@ namespace Game1
             GL.VertexAttribPointer(shaderDirection, 1, VertexAttribPointerType.Float, false, 6 * sizeof(float), 5 * sizeof(float));
 
             // set the uniforms up for the shader
-            levelShader.SetInt("texture1", 0);
-            levelShader.SetInt("texture2", 1);
-            levelShader.SetInt("texture3", 2);
             levelShader.SetVec4("tintColor", (1, 1, 1, 0));
             levelShader.SetInt("tintEnable", 0);
 
@@ -139,7 +136,7 @@ namespace Game1
 
             Matrix4 view = Matrix4.LookAt(player.Position + (Vector3.UnitY * player.Scale.Y / 2), player.Position + (Vector3.UnitY * player.Scale.Y / 2) + (front.X, front.Y, front.Z), (0, 1, 0));
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
 
             // enable the correct texture atlas for the level
             levelTextureAtlas.Use(TextureUnit.Texture0);

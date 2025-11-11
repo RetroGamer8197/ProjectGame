@@ -10,7 +10,7 @@ namespace Game1
     {
         public enum GameState
         {
-            Menu, Level, Pause
+            Menu, Level, Pause, None
         }
 
         public const float speed = 2;
@@ -70,10 +70,17 @@ namespace Game1
             HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.8f, 0), 2));
             HUD_Object.AddHUD_Element(new HealthBar(1.0f, (0.7f, -0.8f, 0), 3));
 
+            HUD_Object.AddHUD_Element(new ItemIcon((-0.9f, 0.9f), (0.1f, 0.1f), 4, new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard }));
+            HUD_Object.AddHUD_Element(new ItemIcon((-0.75f, 0.9f), (0.1f, 0.1f), 5, new HeldItem() { color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard }));
+            HUD_Object.AddHUD_Element(new ItemIcon((-0.6f, 0.9f), (0.1f, 0.1f), 6, new HeldItem() { color = HeldItem.Colors.Green, itemType = HeldItem.ItemTypes.Keycard }));
+            HUD_Object.AddHUD_Element(new ItemIcon((-0.45f, 0.9f), (0.1f, 0.1f), 7, new HeldItem() { color = HeldItem.Colors.Yellow, itemType = HeldItem.ItemTypes.Keycard }));
+            
+            HUD_Object.AddHUD_Element(new WeaponIcon());
+
             // --- Pause Menu ---
             PauseMenu = new();
 
-            PauseMenu.AddHUD_Element(new Background(5));
+            PauseMenu.AddHUD_Element(new Background(0));
             PauseMenu.AddHUD_Element(new TextElement((-0.6f, 0.7f), 32f / 720f, "Pause Menu", true));
             PauseMenu.AddHUD_Element(new TextElement((-0.6f, 0.4f), 32f / 720f, "Press - to quit", true));
 
@@ -110,6 +117,7 @@ namespace Game1
                     {
                         levelStore.levelObjects[i].CheckObjectStateIsCorrect(ref levelStore);
                     }
+                    HUD_Object.HUD_Elements[7].UpdateValue(player.weaponIndex);
 
                     player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer, ref gameState);
                     foreach (Object levelObject in levelStore.levelObjects)
@@ -125,12 +133,23 @@ namespace Game1
                     renderer.TintTick(e.Time);
                     HUD_Object.HUD_Elements[1].UpdateValue(player.Health);
                     HUD_Object.HUD_Elements[2].UpdateValue(player.GetCurrentWeaponMagUsage());
+                    foreach (HUD_Element element in HUD_Object.HUD_Elements)
+                    {
+                        element.CheckIfEnabled(player.Inventory);
+                    }
                     break;
                 case GameState.Pause:
+                    if (CursorState == CursorState.Grabbed)
+                    {
+                        CursorState = CursorState.Normal;
+                        MousePosition = (Size.X / 2f, Size.Y / 2f);
+                    }
+                    
                     if (KeyboardState.IsKeyPressed(Keys.Escape))
                     {
                         gameState = GameState.Level;
-                    } else if (KeyboardState.IsKeyPressed(Keys.Minus))
+                    }
+                    else if (KeyboardState.IsKeyPressed(Keys.Minus))
                     {
                         Close();
                     }

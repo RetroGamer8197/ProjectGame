@@ -1,3 +1,4 @@
+using System.Data.Common;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -8,14 +9,12 @@ namespace Game1
     {
         public Vector3 Position, Scale, hCollisionScale, vCollisionScale;
         public Vector3 upRotation, moveRotation;
-        public List<HeldItem> Inventory = [];/*[new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard },
-                                    new HeldItem() {color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard}
-                                    ];*/
+        public List<HeldItem> Inventory = [];
         public float Health;
         public bool Invincibility = false;
         public float InvincibilityTimer = 0.0f;
         float yVelocity = 0f;
-        int weaponIndex = 0;
+        public int weaponIndex = 0;
 
         Weapon[] weapons = [new Weapon(10, 20, Weapon.WeaponTypes.Pistol), new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
                             new Weapon(30, 30, Weapon.WeaponTypes.Rifle), new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
@@ -51,6 +50,23 @@ namespace Game1
             if (keyboardState.IsKeyPressed(Keys.Escape))
             {
                 gameState = Game.GameState.Pause;
+            }
+
+            if (keyboardState.IsKeyPressed(Keys.D1))
+            {
+                weaponIndex = 0;
+            }
+            if (keyboardState.IsKeyPressed(Keys.D2))
+            {
+                weaponIndex = 1;
+            }
+            if (keyboardState.IsKeyPressed(Keys.D3))
+            {
+                weaponIndex = 2;
+            }
+            if (keyboardState.IsKeyPressed(Keys.D4))
+            {
+                weaponIndex = 3;
             }
 
             // multiplying by delta time unhooks movement and turn speed from the frame rate, meaning slow frame rates will not make the game itself feel slow
