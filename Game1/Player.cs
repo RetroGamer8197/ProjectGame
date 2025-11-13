@@ -30,7 +30,7 @@ namespace Game1
             upRotation = new(0);
         }
 
-        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref Game.GameState gameState)
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref List<HUD_Element> hud_elements, ref Game.GameState gameState)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             bool jumping = false;
@@ -115,12 +115,12 @@ namespace Game1
 
             if ((mouseState.IsButtonPressed(MouseButton.Button1) && cursorState == CursorState.Grabbed) || keyboardState.IsKeyPressed(Keys.LeftAlt))
             {
-                RaycastToObject(ref levelStore, ref renderer, false);
+                RaycastToObject(ref levelStore, ref renderer, false, ref hud_elements);
             }
 
             if (keyboardState.IsKeyPressed(Keys.E))
             {
-                RaycastToObject(ref levelStore, ref renderer, true);
+                RaycastToObject(ref levelStore, ref renderer, true, ref hud_elements);
             }
 
             if (upRotation.X < -Math.PI * 0.499f)
@@ -233,7 +233,7 @@ namespace Game1
             return weapons[weaponIndex].GetFullFraction();
         }
 
-        public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType)
+        public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType, ref List<HUD_Element> hud_elements)
         {
             // interact type is true if it is an interaction and false if it is an attack
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
@@ -319,7 +319,7 @@ namespace Game1
                     if (interactType)
                     {
                         Player ptemp = this;
-                        level.levelObjects[closestObject].HandleInteract(ref Inventory);
+                        level.levelObjects[closestObject].HandleInteract(ref Inventory, ref hud_elements);
                     }
                     else
                     {

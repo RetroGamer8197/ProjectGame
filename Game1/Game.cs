@@ -70,6 +70,8 @@ namespace Game1
             HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.8f, 0), 2));
             HUD_Object.AddHUD_Element(new HealthBar(1.0f, (0.7f, -0.8f, 0), 3));
 
+            HUD_Object.AddHUD_Element(new MessageBox((-0.95f, 0.75f), 24f / 720f));
+
             HUD_Object.AddHUD_Element(new ItemIcon((-0.9f, 0.9f), (0.1f, 0.1f), 4, new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard }));
             HUD_Object.AddHUD_Element(new ItemIcon((-0.75f, 0.9f), (0.1f, 0.1f), 5, new HeldItem() { color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard }));
             HUD_Object.AddHUD_Element(new ItemIcon((-0.6f, 0.9f), (0.1f, 0.1f), 6, new HeldItem() { color = HeldItem.Colors.Green, itemType = HeldItem.ItemTypes.Keycard }));
@@ -117,9 +119,9 @@ namespace Game1
                     {
                         levelStore.levelObjects[i].CheckObjectStateIsCorrect(ref levelStore);
                     }
-                    HUD_Object.HUD_Elements[7].UpdateValue(player.weaponIndex);
+                    HUD_Object.HUD_Elements[8].UpdateValue(player.weaponIndex);
 
-                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer, ref gameState);
+                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer, ref HUD_Object.HUD_Elements, ref gameState);
                     foreach (Object levelObject in levelStore.levelObjects)
                     {
                         if (levelObject.objectType == Object.ObjectType.Entity)
@@ -133,6 +135,7 @@ namespace Game1
                     renderer.TintTick(e.Time);
                     HUD_Object.HUD_Elements[1].UpdateValue(player.Health);
                     HUD_Object.HUD_Elements[2].UpdateValue(player.GetCurrentWeaponMagUsage());
+                    HUD_Object.HUD_Elements[3].UpdateValue((float)e.Time);
                     foreach (HUD_Element element in HUD_Object.HUD_Elements)
                     {
                         element.CheckIfEnabled(player.Inventory);

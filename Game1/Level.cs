@@ -30,7 +30,7 @@ namespace Game1 {
 
         }
 
-        public virtual void HandleInteract(ref List<HeldItem> heldItems)
+        public virtual void HandleInteract(ref List<HeldItem> heldItems, ref List<HUD_Element> hud_elements)
         {
 
         }
@@ -444,9 +444,9 @@ namespace Game1 {
             return returnTriangles;
         }
 
-        public override void HandleInteract(ref List<HeldItem> heldItems)
+        public override void HandleInteract(ref List<HeldItem> heldItems, ref List<HUD_Element> hud_elements)
         {
-            base.HandleInteract(ref heldItems);
+            base.HandleInteract(ref heldItems, ref hud_elements);
 
             foreach (HeldItem item in heldItems)
             {
@@ -456,6 +456,9 @@ namespace Game1 {
                     return;
                 }
             }
+            
+            string[] colors = ["red","green","blue","yellow"];
+            hud_elements[3].UpdateValue("You need the " +  colors[(int)buttonColor] + " keycard to open this door");
         }
     }
 

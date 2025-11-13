@@ -64,10 +64,15 @@ namespace Game1
 
         public virtual void CheckIfEnabled(List<HeldItem> inventory)
         {
-            
+
         }
 
         public virtual void UpdateValue(float input)
+        {
+
+        }
+
+        public virtual void UpdateValue(string input)
         {
 
         }
@@ -258,15 +263,15 @@ namespace Game1
             return [.. gl_data];
         }
     }
-    
-    public class TextElement: HUD_Element
+
+    public class TextElement : HUD_Element
     {
         Vector2 topLeftCoordinate;
         float size;
-        public string text;
+        protected string text;
         readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
 
-        public TextElement(Vector2 alignCoordinate, float textSize, string characters, bool centreAlign) : base ((0,0), (1,1), false, HUD_ElementType.Text, false)
+        public TextElement(Vector2 alignCoordinate, float textSize, string characters, bool centreAlign) : base((0, 0), (1, 1), false, HUD_ElementType.Text, false)
         {
             size = textSize;
             text = characters;
@@ -274,12 +279,13 @@ namespace Game1
             if (centreAlign)
             {
                 topLeftCoordinate = alignCoordinate - (Vector2.UnitX * (characters.Length * size / 2));
-            } else
+            }
+            else
             {
                 topLeftCoordinate = alignCoordinate;
             }
         }
-        
+
         public override float[] GenerateGL_Data(float aspectRatio)
         {
             List<float> vertexData = [];
@@ -303,6 +309,34 @@ namespace Game1
             return [.. vertexData];
         }
 
+    }
+    
+    public class MessageBox : TextElement
+    {
+        private float DurationOfMessage;
+        public MessageBox(Vector2 alignCoordinate, float textSize) : base(alignCoordinate, textSize, "", false)
+        {
+
+        }
+
+        public override void UpdateValue(string newMessage)
+        {
+            text = newMessage;
+            DurationOfMessage = 0.0f;
+        }
+
+        public override void UpdateValue(float input)
+        {
+            DurationOfMessage += input;
+        }
+
+        public override void CheckIfEnabled(List<HeldItem> inventory)
+        {
+            if (DurationOfMessage > 3.0f)
+            {
+                text = "";
+            }
+        }
     }
 
     public class AmmoUsageIndicator : HealthBar
