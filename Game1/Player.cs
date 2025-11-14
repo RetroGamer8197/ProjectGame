@@ -412,6 +412,7 @@ namespace Game1
             while (currentMagUsage != magSize && availableAmmo > 0)
             {
                 currentMagUsage++;
+                availableAmmo--;
             }
         }
 
@@ -426,7 +427,7 @@ namespace Game1
     {
         public enum Colors
         {
-            Red, Green, Blue, Yellow
+            Red, Green, Blue, Yellow, None
         }
         public enum ItemTypes
         {

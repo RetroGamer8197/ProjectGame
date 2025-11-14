@@ -1,4 +1,5 @@
 using System.Reflection.Metadata.Ecma335;
+using OpenTK.Graphics.ES20;
 using OpenTK.Mathematics;
 
 namespace Game1
@@ -72,7 +73,12 @@ namespace Game1
 
         }
 
-        public virtual void UpdateValue(string input)
+        public virtual void QueueValue(string input)
+        {
+
+        }
+
+        public virtual void QueueValue(int input)
         {
 
         }
@@ -314,15 +320,15 @@ namespace Game1
     public class MessageBox : TextElement
     {
         private float DurationOfMessage;
+        Queue<string> messageQueue = [];
         public MessageBox(Vector2 alignCoordinate, float textSize) : base(alignCoordinate, textSize, "", false)
         {
 
         }
 
-        public override void UpdateValue(string newMessage)
+        public override void QueueValue(string newMessage)
         {
-            text = newMessage;
-            DurationOfMessage = 0.0f;
+            messageQueue.Enqueue(newMessage);
         }
 
         public override void UpdateValue(float input)
@@ -334,7 +340,15 @@ namespace Game1
         {
             if (DurationOfMessage > 3.0f)
             {
-                text = "";
+                if (messageQueue.Count > 0)
+                {
+                    text = messageQueue.Dequeue();
+                    DurationOfMessage = 0.0f;
+                }
+                else
+                {
+                    text = "";
+                }
             }
         }
     }

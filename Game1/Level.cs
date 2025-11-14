@@ -5,7 +5,7 @@ namespace Game1 {
     {
         public enum ObjectType
         {
-            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4, Button = 5, Door = 6
+            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4, Button = 5, Door = 6, EndButton = 7
         }
         public ObjectType objectType;
 
@@ -456,9 +456,118 @@ namespace Game1 {
                     return;
                 }
             }
-            
+
+            string[] colors = ["red", "green", "blue", "yellow", "colorless"];
+            hud_elements[3].QueueValue("You need the " + colors[(int)buttonColor] + " keycard to open this door");
+        }
+    }
+    
+    public class LevelEndButton : Button
+    {
+        public LevelEndButton(Vector3 centreIn, Vector3 normalIn, float widthIn, float heightIn, int textureIndexIn, int inactiveTextureIndexIn, float directionIndexIn, HeldItem.Colors color) : base(centreIn, normalIn, widthIn, heightIn, textureIndexIn, inactiveTextureIndexIn, directionIndexIn, HeldItem.Colors.None)
+        {
+            objectType = ObjectType.EndButton;
+        }
+
+        public static void LoadEndButtonFromFile(out LevelEndButton button, ref BinaryReader levelReader)
+        {
+
+            Vector3 centreTemp, normalTemp;
+            float widthTemp, heightTemp;
+            int activeTextureIndex, inactiveTextureIndex;
+            HeldItem.Colors color;
+
+            float directionIndexIn;
+
+            centreTemp = new(levelReader.ReadSingle(), levelReader.ReadSingle(), levelReader.ReadSingle());
+            normalTemp = new(levelReader.ReadSingle(), levelReader.ReadSingle(), levelReader.ReadSingle());
+            widthTemp = levelReader.ReadSingle();
+            heightTemp = levelReader.ReadSingle();
+            activeTextureIndex = levelReader.ReadInt32();
+            inactiveTextureIndex = levelReader.ReadInt32();
+            directionIndexIn = levelReader.ReadByte();
+            color = (HeldItem.Colors)levelReader.ReadByte();
+
+            button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn, color);
+        }
+
+        public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
+        {
+            float distanceAllowedXZ = new Vector2(width / 2, width / 2).LengthSquared;
+            float distanceAllowedY = height;
+            Vector3 VectorDistanceFrom = centre - input;
+            distanceFrom = VectorDistanceFrom.LengthSquared;
+            if (new Vector2(VectorDistanceFrom.X, VectorDistanceFrom.Z).LengthSquared < distanceAllowedXZ && VectorDistanceFrom.Y < distanceAllowedY)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override Triangle[] ConvertToTriangles()
+        {
+            // OpenGL only has full support for processing triangles so any more complex shapes need to be converted down to triangles
+            Vector3 UnitRight, UnitUp;
+            Triangle[] returnTriangles = new Triangle[2];
+
+            if (normal != Vector3.UnitY && normal != -Vector3.UnitY)
+            {
+                UnitRight = Vector3.Normalize(Vector3.Cross(normal, -Vector3.UnitY));
+            }
+            else
+            {
+                UnitRight = Vector3.Normalize(Vector3.Cross(normal, -Vector3.UnitZ));
+            }
+            UnitUp = Vector3.Normalize(Vector3.Cross(-UnitRight, normal));
+
+            RectangleCoordinates[0] = centre - (UnitUp * 0.5f * height) - (UnitRight * 0.5f * width);
+            RectangleCoordinates[1] = centre + (UnitUp * 0.5f * height) - (UnitRight * 0.5f * width);
+            RectangleCoordinates[2] = centre + (UnitUp * 0.5f * height) + (UnitRight * 0.5f * width);
+            RectangleCoordinates[3] = centre - (UnitUp * 0.5f * height) + (UnitRight * 0.5f * width);
+            if (active)
+            {
+                textureIndex = activeTextureIndex;
+            }
+            else
+            {
+                textureIndex = inactiveTextureIndex;
+            }
+            Vector2[] TextureCoordinates =
+            [
+                new(textureIndex % 4 * 0.25f + 0.00390625f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
+                new(textureIndex % 4 * 0.25f + 0.00390625f, (3.99609375f - (textureIndex >> 2)) * 0.25f),
+                new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.99609375f - (textureIndex >> 2)) * 0.25f),
+                new((0.99609375f + (textureIndex % 4)) * 0.25f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
+
+                /*new(textureIndex % 4 * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),
+                new(textureIndex % 4 * 0.25f, (4 - (textureIndex >> 2)) * 0.25f),
+                new((1 + (textureIndex % 4)) * 0.25f, (4 - (textureIndex >> 2)) * 0.25f),
+                new((1 + (textureIndex % 4)) * 0.25f, (3 - (textureIndex >> 2)) * 0.25f),*/
+            ];
+
+            returnTriangles[0] = new(RectangleCoordinates[0], RectangleCoordinates[1], RectangleCoordinates[2], TextureCoordinates[0..3], directionIndex);
+            returnTriangles[1] = new(RectangleCoordinates[0], RectangleCoordinates[2], RectangleCoordinates[3], [TextureCoordinates[0], TextureCoordinates[2], TextureCoordinates[3]], directionIndex);
+
+            return returnTriangles;
+        }
+
+        public override void HandleInteract(ref List<HeldItem> heldItems, ref List<HUD_Element> hud_elements)
+        {
+
+            foreach (HeldItem item in heldItems)
+            {
+                if (item.color == buttonColor)
+                {
+                    active = !active;
+                    return;
+                }
+            }
+
             string[] colors = ["red","green","blue","yellow"];
-            hud_elements[3].UpdateValue("You need the " +  colors[(int)buttonColor] + " keycard to open this door");
+            hud_elements[3].QueueValue("You need the " +  colors[(int)buttonColor] + " keycard to open this door");
         }
     }
 
@@ -697,6 +806,11 @@ namespace Game1 {
                             (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadSingle(),
                             levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), (HeldItem.Colors)levelFile.ReadByte()));
                         break;
+                    case Object.ObjectType.EndButton:
+                        level.levelObjects.Add(new LevelEndButton((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
+                            (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadSingle(),
+                            levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), (HeldItem.Colors)levelFile.ReadByte()));
+                        break;
                     case Object.ObjectType.Door:
                         level.levelObjects.Add(new Door((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
                             levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadInt32(),
@@ -792,6 +906,17 @@ namespace Game1 {
                         levelOutput.Write(buttonTemp.inactiveTextureIndex);
                         levelOutput.Write(buttonTemp.directionIndex);
                         levelOutput.Write((byte)buttonTemp.buttonColor);
+                        break;
+                    case Object.ObjectType.EndButton:
+                        LevelEndButton endButtonTemp = (LevelEndButton)levelObject;
+                        CustomVector3Extension.WriteVector3ToFile(endButtonTemp.centre, ref levelOutput);
+                        CustomVector3Extension.WriteVector3ToFile(endButtonTemp.normal, ref levelOutput);
+                        levelOutput.Write(endButtonTemp.width);
+                        levelOutput.Write(endButtonTemp.height);
+                        levelOutput.Write(endButtonTemp.activeTextureIndex);
+                        levelOutput.Write(endButtonTemp.inactiveTextureIndex);
+                        levelOutput.Write(endButtonTemp.directionIndex);
+                        levelOutput.Write((byte)endButtonTemp.buttonColor);
                         break;
                     case Object.ObjectType.Door:
                         Door doorTemp = (Door)levelObject;
