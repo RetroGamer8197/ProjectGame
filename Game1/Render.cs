@@ -7,17 +7,23 @@ namespace Game1
     public class Renderer
     {
         private int VertexBufferObject, VertexArrayObject;
+        private double tintDuration = -1;
         public Shader levelShader;
-        private Texture levelTextureAtlas, hudAtlas, entityAtlas;
+        private Texture levelTextureAtlas, hudAtlas, entityAtlas, mainMenuImage, font;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public Renderer()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        protected struct FilesState
         {
-            Init();
+            public string levelAtlas, hudAtlas, entityAtlas, mainMenuImage;
         }
 
-        public void Init()
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public Renderer(out bool success)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        {
+            success = Init();
+        }
+
+        public bool Init()
         {
             GL.ClearColor(0.2f, 0.2f, 0.5f, 1.0f);
 
@@ -27,12 +33,42 @@ namespace Game1
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
 
-            levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
-            hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
-            entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
+            // check the presence of all texture files and load all texture atlases into the VRAM
+            string currentFileName = "";
+            try
+            {
+                currentFileName = "Textures/atlas.png";
+                levelTextureAtlas = new("Textures/atlas.png", TextureUnit.Texture0, true);
 
-            levelShader = new("Shaders/level.vert", "Shaders/level.frag");
+                currentFileName = "Textures/hudatlas.png";
+                hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
+
+                currentFileName = "Textures/entityAtlas.png";
+                entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
+
+                currentFileName = "Textures/mainmenu.png";
+                mainMenuImage = new("Textures/mainmenu.png", TextureUnit.Texture3, true);
+
+                currentFileName = "Textures/font.png";
+                font = new("Textures/font.png", TextureUnit.Texture4, true);
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("Missing texture file(s):");
+                Console.WriteLine("\t" + currentFileName);
+                return false;
+            }
+
+
+            // load and initialise the shader program
+            levelShader = new("Shaders/level.vert", "Shaders/level.frag", out bool success);
+            if (!success)
+            {
+                return false;
+            }
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+
+            // set up the vertex attributes so the shader can see and use them
 
             int vertexLocation = GL.GetAttribLocation(levelShader.Handle, "aPosition");
             GL.EnableVertexAttribArray(vertexLocation);
@@ -46,14 +82,42 @@ namespace Game1
             GL.EnableVertexAttribArray(shaderDirection);
             GL.VertexAttribPointer(shaderDirection, 1, VertexAttribPointerType.Float, false, 6 * sizeof(float), 5 * sizeof(float));
 
-            levelShader.SetInt("texture1", 0);
-            levelShader.SetInt("texture2", 1);
-            levelShader.SetInt("texture3", 2);
+            // set the uniforms up for the shader
+            levelShader.SetVec4("tintColor", (1, 1, 1, 0));
+            levelShader.SetInt("tintEnable", 0);
 
+            // enable the depth buffer for triangle sorting
             GL.Enable(EnableCap.DepthTest);
+
+            return true;
+        }
+        public void RenderMainMenu()
+        {
+            GL.Disable(EnableCap.DepthTest);
+
+            float[] MainMenu = [-1, -1, 0, 0, 0, 1.0f,
+                                -1, 1, 0, 0, 1, 1.0f,
+                                1, -1, 0, 1, 0, 1.0f,
+
+                                /*-1, -1, 0, 0, 0, 1.0f,
+                                1, -1, 0, 1, 0, 1.0f,
+                                1, -1, 0, 1, 1, 1.0f,*/
+
+                                -1, 1, 0, 0, 1, 1.0f,
+                                1, 1, 0, 1, 1, 1.0f,
+                                1, -1, 0, 1, 0, 1.0f,
+                                ];
+            levelShader.SetInt("textureAtlas", 3);
+
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.BufferData(BufferTarget.ArrayBuffer, MainMenu.Length * sizeof(float), MainMenu, BufferUsageHint.StreamDraw);
+
+            levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, MainMenu.Length / 6);
         }
 
-        public void RenderFrame(Player player, Level levelStore, Level HUD, float WINDOW_WIDTH, float WINDOW_HEIGHT)
+        public void RenderLevelFrame(Player player, ref Level levelStore, HUD HUD_Object, float WINDOW_WIDTH, float WINDOW_HEIGHT)
         {
             GL.Enable(EnableCap.DepthTest);     // when drawing level geometry, we need the depth buffer enabled so that the triangles are drawn in the correct order 
 
@@ -72,7 +136,7 @@ namespace Game1
 
             Matrix4 view = Matrix4.LookAt(player.Position + (Vector3.UnitY * player.Scale.Y / 2), player.Position + (Vector3.UnitY * player.Scale.Y / 2) + (front.X, front.Y, front.Z), (0, 1, 0));
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
 
             // enable the correct texture atlas for the level
             levelTextureAtlas.Use(TextureUnit.Texture0);
@@ -80,6 +144,14 @@ namespace Game1
             levelShader.Use(model, view, projection);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, levelStore.GL_Level.Length / 6);
+
+            // begin drawing buttons
+            float[] levelTileEntitiesGL = levelStore.GenerateTileEntityGL();
+            GL.BufferData(BufferTarget.ArrayBuffer, levelTileEntitiesGL.Length * sizeof(float), levelTileEntitiesGL, BufferUsageHint.StreamDraw);
+            levelTextureAtlas.Use(TextureUnit.Texture0);
+            levelShader.SetInt("textureAtlas", 0);
+            levelShader.Use(model, view, projection);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, levelTileEntitiesGL.Length / 6);
 
             /// Begin drawing entities
             Entity entityTemp;
@@ -89,13 +161,13 @@ namespace Game1
                 if (objEntity.objectType == Object.ObjectType.Entity)
                 {
                     entityTemp = (Entity)objEntity;
-                    if (entityTemp.alive == true)
+                    if (entityTemp.getAliveState() == true)
                     {
                         GL_Entity.AddRange(entityTemp.GenerateOpenGLData(player.upRotation + player.moveRotation));
                     }
                 }
             }
-            
+
             float[] GL_EntityArray = [.. GL_Entity];
 
             levelShader.SetInt("textureAtlas", 2);
@@ -120,7 +192,7 @@ namespace Game1
             levelTextureAtlas.Use(TextureUnit.Texture0);
             levelShader.SetInt("textureAtlas", 0);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, skybox.Count * sizeof(float), skybox.ToArray(), BufferUsageHint.StreamDraw); // buffer the Entity 
+            GL.BufferData(BufferTarget.ArrayBuffer, skybox.Count * sizeof(float), skybox.ToArray(), BufferUsageHint.StreamDraw); // buffer the skybox vertex data 
             levelShader.Use(model, view, projection);
             GL.DrawArrays(PrimitiveType.Triangles, 0, skybox.Count / 6);
 
@@ -128,9 +200,9 @@ namespace Game1
 
             GL.Disable(EnableCap.DepthTest);    // disable the depth test to prevent the level geometry from obscuring the HUD
 
-            HUD.Sync_GL_Level();
+            HUD_Object.SyncHUD_GL(WINDOW_WIDTH / WINDOW_HEIGHT);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, HUD.GL_Level.Length * sizeof(float), HUD.GL_Level, BufferUsageHint.StreamDraw); // buffer the HUD vertex data to the GPU
+            GL.BufferData(BufferTarget.ArrayBuffer, HUD_Object.HUD_GL.Length * sizeof(float), HUD_Object.HUD_GL, BufferUsageHint.StreamDraw); // buffer the HUD vertex data to the GPU
 
             // Change texture atlas to the correct atlas for the HUD
             hudAtlas.Use(TextureUnit.Texture1);
@@ -138,17 +210,54 @@ namespace Game1
 
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);  // we can reuse the level shader by adding all relevant parameters in such as way that the vertex shader applies no transformations and the fragment shader applies no shading (shaded dir = 1.0f)
 
-            GL.DrawArrays(PrimitiveType.Triangles, 0, HUD.GL_Level.Length / 6); // finally, we can tell the GPU to draw the HUD
+            GL.DrawArrays(PrimitiveType.Triangles, 0, HUD_Object.HUD_GL.Length / 6); // finally, we can tell the GPU to draw the HUD
+
+            // Change texture atlas to the correct atlas for the Text
+            GL.BufferData(BufferTarget.ArrayBuffer, HUD_Object.TextElementGL.Length * sizeof(float), HUD_Object.TextElementGL, BufferUsageHint.StreamDraw);
+            
+            font.Use(TextureUnit.Texture4);
+            levelShader.SetInt("textureAtlas", 4);
+
+            levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);  // we can reuse the level shader by adding all relevant parameters in such as way that the vertex shader applies no transformations and the fragment shader applies no shading (shaded dir = 1.0f)
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, HUD_Object.TextElementGL.Length / 6); // finally, we can tell the GPU to draw the HUD
+        }
+
+        public void RenderPauseMenuFrame(Player player, ref Level levelStore, HUD HUD_Object, HUD PauseMenu, float WINDOW_WIDTH, float WINDOW_HEIGHT)
+        {
+            RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);      // render the level in the background of the pause menu
         }
 
         public void Dispose()
         {
             GL.DeleteBuffer(VertexBufferObject);
             GL.DeleteBuffer(VertexArrayObject);
-
-            levelShader.Dispose();
+            if (levelShader != null)
+            {
+                levelShader.Dispose();   
+            }
         }
 
-    }
+        public void FlashColorTint(Vector4 color)
+        {
+            levelShader.SetVec4("tintColor", color);
+            levelShader.SetFloat("tintEnable", 1);
+            tintDuration = 0f;
+        }
 
+        public void TintTick(double timeSinceLastTick)
+        {
+
+            if (tintDuration != -1)
+            {
+                tintDuration += timeSinceLastTick;
+
+                if (tintDuration > 0.12f)
+                {
+                    tintDuration = -1;
+                    levelShader.SetFloat("tintEnable", 0);
+                }
+            }
+        }
+    }
 }

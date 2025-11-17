@@ -14,11 +14,33 @@ namespace Game1
         public int Handle;
         public int MatrixLocation;
 
-        public Shader(string vertexPath, string fragmentPath)
+        public Shader(string vertexPath, string fragmentPath, out bool initsuccess)
         {
-
-            string VertexShaderSource = File.ReadAllText(vertexPath);
-            string FragmentShaderSource = File.ReadAllText(fragmentPath);
+            string VertexShaderSource, FragmentShaderSource;
+            int failStage = 0;
+            initsuccess = true;
+            try
+            {
+                failStage = 1;
+                VertexShaderSource = File.ReadAllText(vertexPath);
+                failStage = 2;
+                FragmentShaderSource = File.ReadAllText(fragmentPath);
+            } catch (FileNotFoundException)
+            {
+                initsuccess = false;
+                Console.WriteLine("Shader source not found:");
+                switch (failStage)
+                {
+                    case 1:
+                        Console.WriteLine("\t" + vertexPath);
+                        break;
+                    case 2:
+                        Console.WriteLine("\t" + fragmentPath);
+                        break;
+                }
+                return;
+            }
+            
 
             int VertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(VertexShader, VertexShaderSource);
@@ -106,6 +128,18 @@ namespace Game1
         {
             int location = GL.GetUniformLocation(Handle, name);
             GL.Uniform1(location, value);
+        }
+
+        public void SetFloat(string name, float value)
+        {
+            int location = GL.GetUniformLocation(Handle, name);
+            GL.Uniform1(location, value);
+        }
+
+        public void SetVec4(string name, Vector4 value)
+        {
+            int location = GL.GetUniformLocation(Handle, name);
+            GL.Uniform4(location, value);
         }
 
     }
