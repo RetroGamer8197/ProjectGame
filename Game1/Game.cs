@@ -58,9 +58,9 @@ namespace Game1
             }
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
-            //Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
-            levelStore = LevelTemp.levelReturn();
-            levelStore.ExportToFile("Levels/level2.lvl");
+            Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
+            //levelStore = LevelTemp.levelReturn();
+            //levelStore.ExportToFile("Levels/demo.lvl");
 
             // --- HUD ---
             HUD_Object = new();
@@ -145,7 +145,10 @@ namespace Game1
                     if (CursorState == CursorState.Grabbed)
                     {
                         CursorState = CursorState.Normal;
-                        MousePosition = (Size.X / 2f, Size.Y / 2f);
+                        if (OperatingSystem.IsMacOS())
+                        {
+                            MousePosition = (Size.X / 2f, Size.Y / 2f);
+                        }
                     }
                     
                     if (KeyboardState.IsKeyPressed(Keys.Escape))
