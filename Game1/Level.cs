@@ -464,7 +464,7 @@ namespace Game1 {
     
     public class LevelEndButton : Button
     {
-        public LevelEndButton(Vector3 centreIn, Vector3 normalIn, float widthIn, float heightIn, int textureIndexIn, int inactiveTextureIndexIn, float directionIndexIn, HeldItem.Colors color) : base(centreIn, normalIn, widthIn, heightIn, textureIndexIn, inactiveTextureIndexIn, directionIndexIn, HeldItem.Colors.None)
+        public LevelEndButton(Vector3 centreIn, Vector3 normalIn, float widthIn, float heightIn, int textureIndexIn, int inactiveTextureIndexIn, float directionIndexIn) : base(centreIn, normalIn, widthIn, heightIn, textureIndexIn, inactiveTextureIndexIn, directionIndexIn, HeldItem.Colors.None)
         {
             objectType = ObjectType.EndButton;
         }
@@ -475,7 +475,6 @@ namespace Game1 {
             Vector3 centreTemp, normalTemp;
             float widthTemp, heightTemp;
             int activeTextureIndex, inactiveTextureIndex;
-            HeldItem.Colors color;
 
             float directionIndexIn;
 
@@ -486,9 +485,8 @@ namespace Game1 {
             activeTextureIndex = levelReader.ReadInt32();
             inactiveTextureIndex = levelReader.ReadInt32();
             directionIndexIn = levelReader.ReadByte();
-            color = (HeldItem.Colors)levelReader.ReadByte();
 
-            button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn, color);
+            button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn);
         }
 
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
@@ -556,18 +554,8 @@ namespace Game1 {
 
         public override void HandleInteract(ref List<HeldItem> heldItems, ref List<HUD_Element> hud_elements)
         {
-
-            foreach (HeldItem item in heldItems)
-            {
-                if (item.color == buttonColor)
-                {
-                    active = !active;
-                    return;
-                }
-            }
-
-            string[] colors = ["red","green","blue","yellow"];
-            hud_elements[3].QueueValue("You need the " +  colors[(int)buttonColor] + " keycard to open this door");
+            hud_elements[3].QueueValue("Level complete!");
+            hud_elements[3].UpdateValue(true);
         }
     }
 
@@ -712,7 +700,7 @@ namespace Game1 {
 
             foreach (Object levelObject in levelObjects)
             {
-                if (levelObject.objectType == Object.ObjectType.Button)
+                if (levelObject.objectType == Object.ObjectType.Button || levelObject.objectType == Object.ObjectType.EndButton)
                 {
                     foreach (Triangle triangle in levelObject.ConvertToTriangles())
                     {
@@ -809,7 +797,7 @@ namespace Game1 {
                     case Object.ObjectType.EndButton:
                         level.levelObjects.Add(new LevelEndButton((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
                             (levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadSingle(),
-                            levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), (HeldItem.Colors)levelFile.ReadByte()));
+                            levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle()));
                         break;
                     case Object.ObjectType.Door:
                         level.levelObjects.Add(new Door((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
@@ -916,7 +904,6 @@ namespace Game1 {
                         levelOutput.Write(endButtonTemp.activeTextureIndex);
                         levelOutput.Write(endButtonTemp.inactiveTextureIndex);
                         levelOutput.Write(endButtonTemp.directionIndex);
-                        levelOutput.Write((byte)endButtonTemp.buttonColor);
                         break;
                     case Object.ObjectType.Door:
                         Door doorTemp = (Door)levelObject;
