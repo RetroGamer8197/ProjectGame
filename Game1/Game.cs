@@ -65,6 +65,7 @@ namespace Game1
             if (levelFileLoad)
             {
                 // load the data to identify level files and their order
+#pragma warning disable CS0162 // Unreachable code detected
                 try
                 {
                     StreamReader levelNames = new(File.Open("Levels/levelNames.txt", FileMode.Open));
@@ -89,6 +90,7 @@ namespace Game1
                     Console.WriteLine("Level names file is missing! Game load cannot continue");
                     Close();
                 }
+#pragma warning restore CS0162 // Unreachable code detected
             }
 
             // --- HUD ---
@@ -199,6 +201,7 @@ namespace Game1
                 case GameState.Loading:
                     if (levelFileLoad)
                     {
+#pragma warning disable CS0162 // Unreachable code detected
                         if (LevelNames.Count > 0)
                         {
                             Level.ImportLevelFromFile(LevelNames.Dequeue(), out levelStore);
@@ -216,13 +219,16 @@ namespace Game1
                             CursorState = CursorState.Normal;
                             gameState = GameState.Menu;
                         }
+#pragma warning restore CS0162 // Unreachable code detected
                     }
                     else
                     {
-                        
-                        levelStore = LevelTemp.demoReturn();
-                        levelStore.ExportToFile("Levels/demo.lvl");
-                        Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
+                        // the following code is used for debugging and creating levels
+#pragma warning disable CS0162 // Unreachable code detected
+                        levelStore = LevelTemp.level2Return();
+#pragma warning restore CS0162 // Unreachable code detected
+                        levelStore.ExportToFile("Levels/level2.lvl");
+                        Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
                         HUD_Object.HUD_Elements[3].UpdateValue(false);
                         player.LevelReset();
                         gameState = GameState.Level;
