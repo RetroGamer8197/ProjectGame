@@ -10,8 +10,10 @@ namespace Game1
     {
         public enum GameState
         {
-            Menu, Level, Pause, None
+            Menu, Level, Pause, Loading, None
         }
+
+        const bool levelFileLoad = true;
 
         public const float speed = 2;
         public float WINDOW_WIDTH = 1.6f / 0.9f, WINDOW_HEIGHT = 1.0f;
@@ -26,6 +28,8 @@ namespace Game1
         private Level levelStore;
         private HUD HUD_Object, PauseMenu;
 
+        private Queue<string> LevelNames = [];
+        private string[] levelNamesInitial;
 
         Renderer renderer;
 
@@ -58,9 +62,36 @@ namespace Game1
             }
             player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
 
-            Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
-            //levelStore = LevelTemp.levelReturn();
-            //levelStore.ExportToFile("Levels/demo.lvl");
+            if (levelFileLoad)
+            {
+                // load the data to identify level files and their order
+#pragma warning disable CS0162 // Unreachable code detected
+                try
+                {
+                    StreamReader levelNames = new(File.Open("Levels/levelNames.txt", FileMode.Open));
+                    string? fileHeader = levelNames.ReadLine();
+                    if (fileHeader != "ProjectGame 1.0 | Files 2.0")
+                    {
+                        Console.WriteLine("Level names file is incorrect format");
+                        Close();
+                    }
+                    while (!levelNames.EndOfStream)
+                    {
+                        string? currentFileName = levelNames.ReadLine();
+                        if (currentFileName != null)
+                        {
+                            LevelNames.Enqueue(currentFileName);
+                        }
+                    }
+                    levelNamesInitial = [.. LevelNames];
+                }
+                catch (FileNotFoundException)
+                {
+                    Console.WriteLine("Level names file is missing! Game load cannot continue");
+                    Close();
+                }
+#pragma warning restore CS0162 // Unreachable code detected
+            }
 
             // --- HUD ---
             HUD_Object = new();
@@ -107,10 +138,17 @@ namespace Game1
                 case GameState.Menu:
                     if (KeyboardState.IsKeyPressed(Keys.Enter))
                     {
-                        gameState = GameState.Level;
+                        gameState = GameState.Loading;
                     }
                     break;
                 case GameState.Level:
+                    // first check the messagebox to see if the level has been completed
+                    if (HUD_Object.HUD_Elements[3].CheckBoolValue())
+                    {
+                        gameState = GameState.Loading;
+                        break;
+                    }
+
                     // handles player input
                     CursorState temp_cstate = CursorState;  // because the CursorState cannot be sent as a ref, the solution is to 
                                                             // create a copy and then reassign the original after modifying the copy
@@ -160,6 +198,43 @@ namespace Game1
                         Close();
                     }
                     break;
+                case GameState.Loading:
+                    if (levelFileLoad)
+                    {
+#pragma warning disable CS0162 // Unreachable code detected
+                        if (LevelNames.Count > 0)
+                        {
+                            Level.ImportLevelFromFile(LevelNames.Dequeue(), out levelStore);
+                            HUD_Object.HUD_Elements[3].UpdateValue(false);
+                            player.LevelReset();
+                            gameState = GameState.Level;
+                        }
+                        else
+                        {
+                            foreach (string levelName in levelNamesInitial)
+                            {
+                                LevelNames.Enqueue(levelName);
+                            }
+                            player = new((0, 0.1f, 0), (0.25f, 0.5f, 0.25f), (0, (float)Math.PI, 0), 100f);
+                            CursorState = CursorState.Normal;
+                            gameState = GameState.Menu;
+                        }
+#pragma warning restore CS0162 // Unreachable code detected
+                    }
+                    else
+                    {
+                        // the following code is used for debugging and creating levels
+#pragma warning disable CS0162 // Unreachable code detected
+                        levelStore = LevelTemp.level2Return();
+#pragma warning restore CS0162 // Unreachable code detected
+                        levelStore.ExportToFile("Levels/level2.lvl");
+                        Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
+                        HUD_Object.HUD_Elements[3].UpdateValue(false);
+                        player.LevelReset();
+                        gameState = GameState.Level;
+                        
+                    }
+                    break;
             }
         }
 
@@ -174,6 +249,10 @@ namespace Game1
                 case GameState.Level:
                     // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
                     renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    break;
+                case GameState.Loading:
+                    // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
+                    //renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
                     break;
                 case GameState.Pause:
                     renderer.RenderLevelFrame(player, ref levelStore, PauseMenu, WINDOW_WIDTH, WINDOW_HEIGHT);

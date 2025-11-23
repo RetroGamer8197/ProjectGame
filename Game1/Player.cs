@@ -30,6 +30,13 @@ namespace Game1
             upRotation = new(0);
         }
 
+        public void LevelReset()
+        {
+            Position = (0, 0, 0);
+            upRotation = new(0);
+            moveRotation = (0, (float)Math.PI, 0);
+        }
+
         public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref List<HUD_Element> hud_elements, ref Game.GameState gameState)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);

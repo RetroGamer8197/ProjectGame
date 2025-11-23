@@ -73,6 +73,16 @@ namespace Game1
 
         }
 
+        public virtual void UpdateValue(bool input)
+        {
+
+        }
+
+        public virtual bool CheckBoolValue()
+        {
+            return false;
+        }
+
         public virtual void QueueValue(string input)
         {
 
@@ -320,6 +330,7 @@ namespace Game1
     public class MessageBox : TextElement
     {
         private float DurationOfMessage;
+        private bool LevelState = false;
         Queue<string> messageQueue = [];
         public MessageBox(Vector2 alignCoordinate, float textSize) : base(alignCoordinate, textSize, "", false)
         {
@@ -334,6 +345,16 @@ namespace Game1
         public override void UpdateValue(float input)
         {
             DurationOfMessage += input;
+        }
+
+        public override void UpdateValue(bool input)
+        {
+            LevelState = input;
+        }
+
+        public override bool CheckBoolValue()
+        {
+            return LevelState;
         }
 
         public override void CheckIfEnabled(List<HeldItem> inventory)
