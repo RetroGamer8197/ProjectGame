@@ -11,10 +11,12 @@ namespace Game1
         public Vector3 upRotation, moveRotation;
         public List<HeldItem> Inventory = [];
         public float Health;
+        public float Armor;
         public bool Invincibility = false;
         public float InvincibilityTimer = 0.0f;
         float yVelocity = 0f;
         public int weaponIndex = 0;
+        private float floatTime = 0f;
 
         Weapon[] weapons = [new Weapon(10, 20, Weapon.WeaponTypes.Pistol), new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
                             new Weapon(30, 30, Weapon.WeaponTypes.Rifle), new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
@@ -23,18 +25,41 @@ namespace Game1
         {
             Position = positionIn;
             Scale = scaleIn;
-            hCollisionScale = (Scale.X, Scale.Y * 0.6f, Scale.Z);
+            hCollisionScale = (Scale.X, Scale.Y * 0.9f, Scale.Z);
             vCollisionScale = (Scale.X * 0.6f, Scale.Y, Scale.Z * 0.6f);
             moveRotation = moveRotationIn;
             Health = healthIn;
+            Armor = 0;
             upRotation = new(0);
         }
 
-        public void LevelReset()
+        public void NewLevel()
         {
             Position = (0, 0, 0);
             upRotation = new(0);
             moveRotation = (0, (float)Math.PI, 0);
+            Inventory = [];
+        }
+
+        public void LevelReset()
+        {
+            NewLevel();
+            Health = 100;
+            Armor = 0;
+
+            weapons = [ new Weapon(10, 20, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
+                        new Weapon(30, 30, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
+        }
+
+        public void Damage(float damageIn)
+        {
+            if (!Invincibility)
+            {
+                Health -= Math.Clamp(damageIn - (Armor / 5), 0, 100);
+                Armor = Math.Clamp(Armor - (damageIn / 5), 0, 100);
+                Invincibility = true;
+                InvincibilityTimer = 0.5f;
+            }
         }
 
         public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref List<HUD_Element> hud_elements, ref Game.GameState gameState)
@@ -99,14 +124,14 @@ namespace Game1
 
             if (keyboardState.IsKeyPressed(Keys.Backspace))
             {
-                    if (cursorState == CursorState.Normal)
-                    {
-                        cursorState = CursorState.Grabbed;
-                    }
-                    else
-                    {
-                        cursorState = CursorState.Normal;
-                    }
+                if (cursorState == CursorState.Normal)
+                {
+                    cursorState = CursorState.Grabbed;
+                }
+                else
+                {
+                    cursorState = CursorState.Normal;
+                }
             }
 
             if (keyboardState.IsKeyPressed(Keys.R))
@@ -163,12 +188,17 @@ namespace Game1
 
             tempY.Y = yVelocity * deltaTime;
 
-
-            // collision detection
+            NewCollision(tempX, tempY, tempZ, ref levelStore, deltaTime, ref jumping, ref keyboardState);
+            
+        }
+        
+        private void NewCollision(Vector3 tempX, Vector3 tempY, Vector3 tempZ, ref Level levelStore, float deltaTime, ref bool jumping, ref KeyboardState keyboardState)
+        {
             bool collidedZ = false;
             bool collidedX = false;
             bool collidedXZ = false;
-            bool collidedY = false;
+            bool collidedUpY = false;
+            bool collidedDownY = false;
             bool grounded = false;
 
             foreach (Object levelObject in levelStore.levelObjects)
@@ -176,26 +206,43 @@ namespace Game1
                 if (levelObject.objectType != Object.ObjectType.Entity)
                 {
                     // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
-                    collidedZ |= levelObject.CheckCollision(Position + (Vector3.UnitZ * (tempX.Z + tempZ.Z)), hCollisionScale);
-                    collidedX |= levelObject.CheckCollision(Position + (Vector3.UnitX * (tempX.X + tempZ.X)), hCollisionScale);
-                    collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ), hCollisionScale);
-                    collidedY |= levelObject.CheckCollision(Position + tempX + tempZ + tempY, vCollisionScale);
+                    collidedZ       |= levelObject.CheckCollision(Position + (Vector3.UnitZ * (tempX.Z + tempZ.Z)), hCollisionScale);
+                    collidedX       |= levelObject.CheckCollision(Position + (Vector3.UnitX * (tempX.X + tempZ.X)), hCollisionScale);
+                    collidedXZ      |= levelObject.CheckCollision(Position + (tempX + tempZ), hCollisionScale);
+                    collidedUpY     |= levelObject.CheckCollision(Position + tempX + tempZ + tempY + (Vector3.UnitY * vCollisionScale.Y * 0.05f), vCollisionScale);
+                    collidedDownY |= levelObject.CheckCollision(Position + tempX + tempZ + tempY - (Vector3.UnitY * vCollisionScale.Y * 0.05f), vCollisionScale);
+                    
                     if (levelObject.objectType == Object.ObjectType.Cube)
                     {
                         Cube C = (Cube)levelObject;
-                        if (C.centre.Y < Position.Y && collidedY)
+                        if (C.centre.Y < Position.Y && collidedDownY)
                         {
                             grounded = true;
                         }
                     }
                 }
-                
+
             }
 
             if (grounded && !jumping)
             {
                 yVelocity = 0;
                 tempY.Y = 0f;
+            } else if(collidedUpY)
+            {
+                if (floatTime > 0.2f)
+                {
+                    yVelocity = 0;
+                    yVelocity -= 9f * deltaTime;
+                    floatTime = 0f;
+                }
+                else
+                {
+                    yVelocity = 0;
+                    floatTime += deltaTime;
+                }
+                
+                
             }
             else if (jumping && grounded)
             {
@@ -238,6 +285,31 @@ namespace Game1
         public float GetCurrentWeaponMagUsage()
         {
             return weapons[weaponIndex].GetFullFraction();
+        }
+
+        public string GetCurrentWeaponUsageString()
+        {
+            return weapons[weaponIndex].currentMagUsage + "/" + weapons[weaponIndex].GetAvailableAmmo();
+        }
+
+        public bool CollectAmmo(int quantity, Item.ItemsEnum ammoType)
+        {
+            switch (ammoType)
+            {
+                case Item.ItemsEnum.SmallAmmo:
+                    weapons[0].CollectAmmo(quantity);
+                    return true;
+                case Item.ItemsEnum.ShellPack:
+                    weapons[1].CollectAmmo(quantity);
+                    return true;
+                case Item.ItemsEnum.MediumAmmo:
+                    weapons[2].CollectAmmo(quantity);
+                    return true;
+                case Item.ItemsEnum.LargeAmmo:
+                    weapons[3].CollectAmmo(quantity);
+                    return true;
+            }
+            return false;
         }
 
         public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType, ref List<HUD_Element> hud_elements)
@@ -369,6 +441,80 @@ namespace Game1
         private Vector3 upRotation;
         private Vector3 front;
         private float health = 100;
+
+        private void OldCollision(Vector3 tempX, Vector3 tempY, Vector3 tempZ, ref Level levelStore, float deltaTime, ref bool jumping, ref KeyboardState keyboardState)
+        {
+            // collision detection
+            bool collidedZ = false;
+            bool collidedX = false;
+            bool collidedXZ = false;
+            bool collidedY = false;
+            bool grounded = false;
+
+            foreach (Object levelObject in levelStore.levelObjects)
+            {
+                if (levelObject.objectType != Object.ObjectType.Entity)
+                {
+                    // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
+                    collidedZ |= levelObject.CheckCollision(Position + (Vector3.UnitZ * (tempX.Z + tempZ.Z)), hCollisionScale);
+                    collidedX |= levelObject.CheckCollision(Position + (Vector3.UnitX * (tempX.X + tempZ.X)), hCollisionScale);
+                    collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ), hCollisionScale);
+                    collidedY |= levelObject.CheckCollision(Position + tempX + tempZ + tempY, vCollisionScale);
+                    if (levelObject.objectType == Object.ObjectType.Cube)
+                    {
+                        Cube C = (Cube)levelObject;
+                        if (C.centre.Y < Position.Y && collidedY)
+                        {
+                            grounded = true;
+                        }
+                    }
+                }
+
+            }
+
+            if (grounded && !jumping)
+            {
+                yVelocity = 0;
+                tempY.Y = 0f;
+            }
+            else if (jumping && grounded)
+            {
+                Position.Y += yVelocity * deltaTime;
+            }
+            else
+            {
+                yVelocity -= 9f * deltaTime;
+                Position.Y += yVelocity * deltaTime;
+            }
+
+            if (!collidedXZ && !collidedX && !collidedZ)
+            {
+
+            }
+            else if (!collidedZ && collidedX)
+            {
+                tempX.X = 0;
+                tempZ.X = 0;
+            }
+            else if (!collidedX && collidedZ)
+            {
+                tempX.Z = 0;
+                tempZ.Z = 0;
+            }
+            else
+            {
+                tempX = (0, 0, 0);
+                tempZ = (0, 0, 0);
+            }
+
+            Position += tempZ + tempX;
+
+            if (keyboardState.IsKeyDown(Keys.Space) && grounded)
+            {
+                yVelocity = 4f;
+            }
+        }
+
         */
     }
 
@@ -376,7 +522,7 @@ namespace Game1
     {
         float attackDamage;
         public readonly int magSize;
-        int currentMagUsage;
+        public int currentMagUsage;
         private int availableAmmo;
         public int UITextureIndex;
 
@@ -392,7 +538,8 @@ namespace Game1
             attackDamage = _attackDamage;
             magSize = _magSize;
             weaponType = _weaponType;
-            availableAmmo = 10000;
+            availableAmmo = _magSize;
+            Reload();
         }
 
         public float Shoot(ref Renderer renderer)
@@ -428,9 +575,14 @@ namespace Game1
             availableAmmo += collected;
         }
 
+        public int GetAvailableAmmo()
+        {
+            return availableAmmo;
+        }
+
     }
 
-    public class HeldItem
+    public struct HeldItem
     {
         public enum Colors
         {

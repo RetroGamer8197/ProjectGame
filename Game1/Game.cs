@@ -10,14 +10,14 @@ namespace Game1
     {
         public enum GameState
         {
-            Menu, Level, Pause, Loading, None
+            Menu, Level, Pause, Loading, Reset, None
         }
 
         const bool levelFileLoad = true;
 
         public const float speed = 2;
         public float WINDOW_WIDTH = 1.6f / 0.9f, WINDOW_HEIGHT = 1.0f;
-        bool firstFrame = true;
+        bool firstFrame = false;
         public Shader levelShader;
         public Texture levelTextureAtlas, hudAtlas, entityAtlas;
 
@@ -30,6 +30,7 @@ namespace Game1
 
         private Queue<string> LevelNames = [];
         private string[] levelNamesInitial;
+        string currentLevel = "";
 
         Renderer renderer;
 
@@ -45,7 +46,6 @@ namespace Game1
             {
                 UpdateFrequency = 120;
             }
-
         }
 
         protected override void OnLoad()
@@ -103,21 +103,22 @@ namespace Game1
 
             HUD_Object.AddHUD_Element(new MessageBox((-0.95f, 0.75f), 24f / 720f));
 
+            HUD_Object.AddHUD_Element(new WeaponIcon());
+
+            HUD_Object.AddHUD_Element(new AmmoText((0.7f, -0.9f), 24f / 720f));
+            HUD_Object.AddHUD_Element(new HealthBar(100f, (-0.7f, -0.65f, 0), 0));
+
             HUD_Object.AddHUD_Element(new ItemIcon((-0.9f, 0.9f), (0.1f, 0.1f), 4, new HeldItem() { color = HeldItem.Colors.Red, itemType = HeldItem.ItemTypes.Keycard }));
             HUD_Object.AddHUD_Element(new ItemIcon((-0.75f, 0.9f), (0.1f, 0.1f), 5, new HeldItem() { color = HeldItem.Colors.Blue, itemType = HeldItem.ItemTypes.Keycard }));
             HUD_Object.AddHUD_Element(new ItemIcon((-0.6f, 0.9f), (0.1f, 0.1f), 6, new HeldItem() { color = HeldItem.Colors.Green, itemType = HeldItem.ItemTypes.Keycard }));
             HUD_Object.AddHUD_Element(new ItemIcon((-0.45f, 0.9f), (0.1f, 0.1f), 7, new HeldItem() { color = HeldItem.Colors.Yellow, itemType = HeldItem.ItemTypes.Keycard }));
-            
-            HUD_Object.AddHUD_Element(new WeaponIcon());
 
             // --- Pause Menu ---
             PauseMenu = new();
 
-            PauseMenu.AddHUD_Element(new Background(0));
+            PauseMenu.AddHUD_Element(new Background(15));
             PauseMenu.AddHUD_Element(new TextElement((-0.6f, 0.7f), 32f / 720f, "Pause Menu", true));
             PauseMenu.AddHUD_Element(new TextElement((-0.6f, 0.4f), 32f / 720f, "Press - to quit", true));
-
-            //GL.BufferData(BufferTarget.ArrayBuffer, levelStore.GL_Level.Length * sizeof(float), levelStore.GL_Level, BufferUsageHint.StreamDraw);
 
         }
 
@@ -157,26 +158,56 @@ namespace Game1
                     {
                         levelStore.levelObjects[i].CheckObjectStateIsCorrect(ref levelStore);
                     }
-                    HUD_Object.HUD_Elements[8].UpdateValue(player.weaponIndex);
+                    HUD_Object.HUD_Elements[4].UpdateValue(player.weaponIndex);
 
-                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)e.Time, ref renderer, ref HUD_Object.HUD_Elements, ref gameState);
+                    HUD_Object.HUD_Elements[5].QueueValue(player.GetCurrentWeaponUsageString());
+
+                    player.Input_Tick(this, KeyboardState, MouseState, ref temp_cstate, ref levelStore, (float)Math.Clamp(e.Time, 0.0f, 0.1f), ref renderer, ref HUD_Object.HUD_Elements, ref gameState);
                     foreach (Object levelObject in levelStore.levelObjects)
                     {
                         if (levelObject.objectType == Object.ObjectType.Entity)
                         {
-                            levelObject.Tick(player.Position, ref player.Health, (float)e.Time, ref levelStore, ref player);
+                            levelObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(e.Time, 0.0f, 0.1f), ref levelStore, ref player);
                         }
                     }
+
+                    Stack<Object> aliveTempObjects = [];
+                    foreach (Object tempObject in levelStore.temporaryObjects)
+                    {
+                        if (tempObject.objectType == Object.ObjectType.Entity)
+                        {
+                            tempObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(e.Time, 0.0f, 0.1f), ref levelStore, ref player);
+                        }
+                        if (((Entity)tempObject).getAliveState())
+                        {
+                            aliveTempObjects.Push(tempObject);
+                        }
+                    }
+
+                    levelStore.temporaryObjects = [];
+                    while (aliveTempObjects.Count > 0)
+                    {
+                        levelStore.temporaryObjects.Add(aliveTempObjects.Pop());
+                    }
+                    
                     CursorState = temp_cstate;
 
                     // manage tinting for flash
-                    renderer.TintTick(e.Time);
+                    renderer.TintTick(Math.Clamp(e.Time, 0.0f, 0.1f));
+
+                    // update the values and states of HUD elements
                     HUD_Object.HUD_Elements[1].UpdateValue(player.Health);
                     HUD_Object.HUD_Elements[2].UpdateValue(player.GetCurrentWeaponMagUsage());
-                    HUD_Object.HUD_Elements[3].UpdateValue((float)e.Time);
+                    HUD_Object.HUD_Elements[6].UpdateValue(player.Armor);
+                    HUD_Object.HUD_Elements[3].UpdateValue((float)Math.Clamp(e.Time, 0.0f, 0.1f));
                     foreach (HUD_Element element in HUD_Object.HUD_Elements)
                     {
                         element.CheckIfEnabled(player.Inventory);
+                    }
+
+                    if (player.Health <= 0 || player.Position.Y < -30f)
+                    {
+                        gameState = GameState.Reset;
                     }
                     break;
                 case GameState.Pause:
@@ -198,15 +229,30 @@ namespace Game1
                         Close();
                     }
                     break;
+                case GameState.Reset:
+                    Level.ImportLevelFromFile(currentLevel, out levelStore);
+                    if (!levelStore.successfullyLoaded)
+                    {
+                        Close();
+                    }
+                    HUD_Object.HUD_Elements[3].UpdateValue(false);
+                    player.LevelReset();
+                    gameState = GameState.Level;
+                    break;
                 case GameState.Loading:
                     if (levelFileLoad)
                     {
 #pragma warning disable CS0162 // Unreachable code detected
                         if (LevelNames.Count > 0)
                         {
-                            Level.ImportLevelFromFile(LevelNames.Dequeue(), out levelStore);
+                            currentLevel = LevelNames.Dequeue();
+                            Level.ImportLevelFromFile(currentLevel, out levelStore);
+                            if (!levelStore.successfullyLoaded)
+                            {
+                                Close();
+                            }
                             HUD_Object.HUD_Elements[3].UpdateValue(false);
-                            player.LevelReset();
+                            player.NewLevel();
                             gameState = GameState.Level;
                         }
                         else

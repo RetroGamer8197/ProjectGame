@@ -25,7 +25,7 @@ namespace Game1
 
         public bool Init()
         {
-            GL.ClearColor(0.2f, 0.2f, 0.5f, 1.0f);
+            GL.ClearColor(0.094f, 0.608f, 0.8f, 1.0f);
 
             VertexArrayObject = GL.GenVertexArray();
             GL.BindVertexArray(VertexArrayObject);
@@ -169,6 +169,26 @@ namespace Game1
             }
 
             float[] GL_EntityArray = [.. GL_Entity];
+
+            levelShader.SetInt("textureAtlas", 2);
+
+            GL.BufferData(BufferTarget.ArrayBuffer, GL_EntityArray.Length * sizeof(float), GL_EntityArray, BufferUsageHint.StreamDraw); // buffer the Entity vertex data to the GPU. Entities are drawn like 2D sprites so their vertex data needs to be updated every frame
+            levelShader.Use(model, view, projection);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, GL_EntityArray.Length / 6);
+
+            foreach (Object objEntity in levelStore.temporaryObjects)
+            {
+                if (objEntity.objectType == Object.ObjectType.Entity)
+                {
+                    entityTemp = (Entity)objEntity;
+                    if (entityTemp.getAliveState() == true)
+                    {
+                        GL_Entity.AddRange(entityTemp.GenerateOpenGLData(player.upRotation + player.moveRotation));
+                    }
+                }
+            }
+
+            GL_EntityArray = [.. GL_Entity];
 
             levelShader.SetInt("textureAtlas", 2);
 
