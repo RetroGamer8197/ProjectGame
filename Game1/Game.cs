@@ -297,8 +297,7 @@ namespace Game1
                     renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
                     break;
                 case GameState.Loading:
-                    // the code to render the display is very long so I put it in a function inside the renderer class so all the data it uses is also stored in this class
-                    //renderer.RenderLevelFrame(player, ref levelStore, HUD_Object, WINDOW_WIDTH, WINDOW_HEIGHT);
+                    
                     break;
                 case GameState.Pause:
                     renderer.RenderLevelFrame(player, ref levelStore, PauseMenu, WINDOW_WIDTH, WINDOW_HEIGHT);

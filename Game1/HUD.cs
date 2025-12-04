@@ -287,7 +287,7 @@ namespace Game1
         readonly float size;
         readonly bool centreAlign;
         protected string text;
-        readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
+        static private readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
 
         public TextElement(Vector2 alignCoordinateIn, float textSize, string characters, bool centreAlignIn) : base((0, 0), (1, 1), false, HUD_ElementType.Text, false)
         {
@@ -342,7 +342,7 @@ namespace Game1
 
     public class MessageBox(Vector2 alignCoordinate, float textSize) : TextElement(alignCoordinate, textSize, "", false)
     {
-        private float DurationOfMessage;
+        private float DurationOfMessage = 5.0f;
         private bool LevelState = false;
         Queue<string> messageQueue = [];
 
@@ -378,6 +378,7 @@ namespace Game1
                 else
                 {
                     text = "";
+                    DurationOfMessage = 10.0f;
                 }
             }
         }
