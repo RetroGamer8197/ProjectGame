@@ -210,7 +210,7 @@ namespace Game1
                     collidedX       |= levelObject.CheckCollision(Position + (Vector3.UnitX * (tempX.X + tempZ.X)), hCollisionScale);
                     collidedXZ      |= levelObject.CheckCollision(Position + (tempX + tempZ), hCollisionScale);
                     collidedUpY     |= levelObject.CheckCollision(Position + tempX + tempZ + tempY + (Vector3.UnitY * vCollisionScale.Y * 0.05f), vCollisionScale);
-                    collidedDownY |= levelObject.CheckCollision(Position + tempX + tempZ + tempY - (Vector3.UnitY * vCollisionScale.Y * 0.05f), vCollisionScale);
+                    collidedDownY   |= levelObject.CheckCollision(Position + tempX + tempZ + tempY - (Vector3.UnitY * vCollisionScale.Y * 0.05f), vCollisionScale);
                     
                     if (levelObject.objectType == Object.ObjectType.Cube)
                     {

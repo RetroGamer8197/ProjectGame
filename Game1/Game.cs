@@ -271,10 +271,10 @@ namespace Game1
                     {
                         // the following code is used for debugging and creating levels
 #pragma warning disable CS0162 // Unreachable code detected
-                        levelStore = LevelTemp.level2Return();
+                        levelStore = LevelTemp.level1Return();
 #pragma warning restore CS0162 // Unreachable code detected
-                        levelStore.ExportToFile("Levels/level2.lvl");
-                        Level.ImportLevelFromFile("Levels/level2.lvl", out levelStore);
+                        levelStore.ExportToFile("Levels/level1.lvl");
+                        Level.ImportLevelFromFile("Levels/level1.lvl", out levelStore);
                         HUD_Object.HUD_Elements[3].UpdateValue(false);
                         player.LevelReset();
                         gameState = GameState.Level;
