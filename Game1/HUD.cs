@@ -283,14 +283,18 @@ namespace Game1
     public class TextElement : HUD_Element
     {
         Vector2 topLeftCoordinate;
-        float size;
+        Vector2 alignCoordinate;
+        readonly float size;
+        readonly bool centreAlign;
         protected string text;
-        readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
+        static private readonly int[] coordinateIndices = [0, 1, 2, 2, 0, 3];
 
-        public TextElement(Vector2 alignCoordinate, float textSize, string characters, bool centreAlign) : base((0, 0), (1, 1), false, HUD_ElementType.Text, false)
+        public TextElement(Vector2 alignCoordinateIn, float textSize, string characters, bool centreAlignIn) : base((0, 0), (1, 1), false, HUD_ElementType.Text, false)
         {
             size = textSize;
             text = characters;
+            centreAlign = centreAlignIn;
+            alignCoordinate = alignCoordinateIn;
 
             if (centreAlign)
             {
@@ -304,6 +308,15 @@ namespace Game1
 
         public override float[] GenerateGL_Data(float aspectRatio)
         {
+            if (centreAlign)
+            {
+                topLeftCoordinate = alignCoordinate - (Vector2.UnitX * (text.Length * size / 2));
+            }
+            else
+            {
+                topLeftCoordinate = alignCoordinate;
+            }
+
             List<float> vertexData = [];
             int i = 0;
             foreach (char c in text)
@@ -326,16 +339,12 @@ namespace Game1
         }
 
     }
-    
-    public class MessageBox : TextElement
+
+    public class MessageBox(Vector2 alignCoordinate, float textSize) : TextElement(alignCoordinate, textSize, "", false)
     {
-        private float DurationOfMessage;
+        private float DurationOfMessage = 5.0f;
         private bool LevelState = false;
         Queue<string> messageQueue = [];
-        public MessageBox(Vector2 alignCoordinate, float textSize) : base(alignCoordinate, textSize, "", false)
-        {
-
-        }
 
         public override void QueueValue(string newMessage)
         {
@@ -369,15 +378,17 @@ namespace Game1
                 else
                 {
                     text = "";
+                    DurationOfMessage = 10.0f;
                 }
             }
         }
     }
-
-    public class AmmoUsageIndicator : HealthBar
+    
+    public class AmmoText(Vector2 alignCoordinate, float textSize) : TextElement(alignCoordinate, textSize, "", true)
     {
-        public AmmoUsageIndicator() : base(1.0f, (0.7f, -0.8f, 0), 3)
+        public override void QueueValue(string newMessage)
         {
+            text = newMessage;
         }
     }
 }

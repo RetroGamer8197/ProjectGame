@@ -113,7 +113,7 @@ namespace Game1 {
             0, 1, 2, 1, 2, 3,       // negative z face
 
         ];
-        Vector2[] textureCoordinates;
+        private  readonly Vector2[] textureCoordinates;
             
         // this initializer assigns and calculates all the properties of the cube type based on the parameters provided
         public Cube(Vector3 centrein, float scaleXin, float scaleYin, float scaleZin, int TextureIndexIn)
@@ -636,12 +636,15 @@ namespace Game1 {
     {
 
         public List<Object> levelObjects;
+        public List<Object> temporaryObjects;
 
         public float[] GL_Level;
+        public bool successfullyLoaded = true;
 
         public Level()
         {
             levelObjects = [];
+            temporaryObjects = [];
             GL_Level = [];
         }
 
@@ -736,8 +739,10 @@ namespace Game1 {
             {
                 levelFile = new(File.Open(fileLocation, FileMode.Open));
             }
-            catch
+            catch (FileNotFoundException)
             {
+                Console.WriteLine("Missing file: {0}", fileLocation);
+                level.successfullyLoaded = false;
                 return;
             }
             while (!(levelFile.BaseStream.Position == levelFile.BaseStream.Length))
