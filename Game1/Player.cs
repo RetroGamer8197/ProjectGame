@@ -61,8 +61,16 @@ namespace Game1
                 InvincibilityTimer = 0.5f;
             }
         }
+        /*
 
-        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref List<HUD_Element> hud_elements, ref Game.GameState gameState)
+
+
+            NEED TO UPDATE
+
+
+
+        */
+        public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref HUD HUD_Object, ref Game.GameState gameState)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
             bool jumping = false;
@@ -147,12 +155,12 @@ namespace Game1
 
             if ((mouseState.IsButtonPressed(MouseButton.Button1) && cursorState == CursorState.Grabbed) || keyboardState.IsKeyPressed(Keys.LeftAlt))
             {
-                RaycastToObject(ref levelStore, ref renderer, false, ref hud_elements);
+                RaycastToObject(ref levelStore, ref renderer, false, ref HUD_Object);
             }
 
             if (keyboardState.IsKeyPressed(Keys.E))
             {
-                RaycastToObject(ref levelStore, ref renderer, true, ref hud_elements);
+                RaycastToObject(ref levelStore, ref renderer, true, ref HUD_Object);
             }
 
             if (upRotation.X < -Math.PI * 0.499f)
@@ -191,6 +199,15 @@ namespace Game1
             NewCollision(tempX, tempY, tempZ, ref levelStore, deltaTime, ref jumping, ref keyboardState);
             
         }
+        /*
+
+
+
+            NEED TO UPDATE
+
+
+
+        */
         
         private void NewCollision(Vector3 tempX, Vector3 tempY, Vector3 tempZ, ref Level levelStore, float deltaTime, ref bool jumping, ref KeyboardState keyboardState)
         {
@@ -312,7 +329,7 @@ namespace Game1
             return false;
         }
 
-        public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType, ref List<HUD_Element> hud_elements)
+        public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType, ref HUD HUD_Object)
         {
             // interact type is true if it is an interaction and false if it is an attack
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
@@ -398,7 +415,7 @@ namespace Game1
                     if (interactType)
                     {
                         Player ptemp = this;
-                        level.levelObjects[closestObject].HandleInteract(ref Inventory, ref hud_elements);
+                        level.levelObjects[closestObject].HandleInteract(ref Inventory, ref HUD_Object);
                     }
                     else
                     {
@@ -433,89 +450,6 @@ namespace Game1
             return position.Floor() * scale;
 
         }
-
-        /*
-        private Vector3 Position;
-        private Vector3 playerScale = (0.25f, 0.5f, 0.25f);
-        private Vector3 moveRotation;
-        private Vector3 upRotation;
-        private Vector3 front;
-        private float health = 100;
-
-        private void OldCollision(Vector3 tempX, Vector3 tempY, Vector3 tempZ, ref Level levelStore, float deltaTime, ref bool jumping, ref KeyboardState keyboardState)
-        {
-            // collision detection
-            bool collidedZ = false;
-            bool collidedX = false;
-            bool collidedXZ = false;
-            bool collidedY = false;
-            bool grounded = false;
-
-            foreach (Object levelObject in levelStore.levelObjects)
-            {
-                if (levelObject.objectType != Object.ObjectType.Entity)
-                {
-                    // to simplify this part of the code, CheckCollision is a virtual function of Object and is overridden in inheriting classes
-                    collidedZ |= levelObject.CheckCollision(Position + (Vector3.UnitZ * (tempX.Z + tempZ.Z)), hCollisionScale);
-                    collidedX |= levelObject.CheckCollision(Position + (Vector3.UnitX * (tempX.X + tempZ.X)), hCollisionScale);
-                    collidedXZ |= levelObject.CheckCollision(Position + (tempX + tempZ), hCollisionScale);
-                    collidedY |= levelObject.CheckCollision(Position + tempX + tempZ + tempY, vCollisionScale);
-                    if (levelObject.objectType == Object.ObjectType.Cube)
-                    {
-                        Cube C = (Cube)levelObject;
-                        if (C.centre.Y < Position.Y && collidedY)
-                        {
-                            grounded = true;
-                        }
-                    }
-                }
-
-            }
-
-            if (grounded && !jumping)
-            {
-                yVelocity = 0;
-                tempY.Y = 0f;
-            }
-            else if (jumping && grounded)
-            {
-                Position.Y += yVelocity * deltaTime;
-            }
-            else
-            {
-                yVelocity -= 9f * deltaTime;
-                Position.Y += yVelocity * deltaTime;
-            }
-
-            if (!collidedXZ && !collidedX && !collidedZ)
-            {
-
-            }
-            else if (!collidedZ && collidedX)
-            {
-                tempX.X = 0;
-                tempZ.X = 0;
-            }
-            else if (!collidedX && collidedZ)
-            {
-                tempX.Z = 0;
-                tempZ.Z = 0;
-            }
-            else
-            {
-                tempX = (0, 0, 0);
-                tempZ = (0, 0, 0);
-            }
-
-            Position += tempZ + tempX;
-
-            if (keyboardState.IsKeyDown(Keys.Space) && grounded)
-            {
-                yVelocity = 4f;
-            }
-        }
-
-        */
     }
 
     public class Weapon

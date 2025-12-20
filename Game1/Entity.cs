@@ -6,8 +6,7 @@ using System.Data.Common;
 
 namespace Game1
 {
-
-    public class Entity : Object
+public class Entity : Object
     {
         public enum EntityType
         {
@@ -36,25 +35,21 @@ namespace Game1
             return alive;
         }
 
-        public virtual float[] GenerateOpenGLData(Vector3 playerRotation)
+        public override float[] GenerateFloatData(Vector3 playerRotation)
         {
             List<float> openGLData = [];
+
+            if (!alive)
+            {
+                return [];
+            }
 
             Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(playerRotation)) * new Vector3(0.0f, 0.0f, 1.0f);
 
             Plane entitySprite = new(Position, front, scale.X, scale.Y, textureIndex, 1.0f);
 
-            Triangle[] triangletemps = entitySprite.ConvertToTriangles();
-            foreach (Triangle triangle in triangletemps)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    openGLData.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
-            return [.. openGLData];
+            return entitySprite.GenerateFloatData(playerRotation);
         }
-
     }
 
     public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
@@ -230,14 +225,14 @@ namespace Game1
             return true;
         }
 
-        public override float[] GenerateOpenGLData(Vector3 playerRotation)
+        public override float[] GenerateFloatData(Vector3 playerRotation)
         {
             if (!alive)
             {
                 return [];
             }
 
-            return base.GenerateOpenGLData(playerRotation);
+            return base.GenerateFloatData(playerRotation);
         }
     }
 

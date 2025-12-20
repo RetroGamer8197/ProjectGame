@@ -6,7 +6,7 @@ namespace Game1
 {
     public class HUD
     {
-        public List<HUD_Element> HUD_Elements;
+        public Dictionary<string, HUD_Element> HUD_Elements;
         public float[] HUD_GL, TextElementGL;
 
         public HUD()
@@ -15,9 +15,9 @@ namespace Game1
             HUD_GL = [];
             TextElementGL = [];
         }
-        public void AddHUD_Element(HUD_Element element)
+        public void AddHUD_Element(string name, HUD_Element element)
         {
-            HUD_Elements.Add(element);
+            HUD_Elements.Add(name, element);
         }
 
         public void SyncHUD_GL(float aspectRatio)
@@ -25,11 +25,37 @@ namespace Game1
             GenerateGL_Data(aspectRatio);
         }
 
+        public void UpdateElements(ref Player player, float deltaTime)
+        {
+            HUD_Elements["weaponicon"].UpdateValue(player.weaponIndex);
+            HUD_Elements["ammotext"].QueueValue(player.GetCurrentWeaponUsageString());
+
+            HUD_Elements["healthbar"].UpdateValue(player.Health);
+            HUD_Elements["ammoindicator"].UpdateValue(player.GetCurrentWeaponMagUsage());
+            HUD_Elements["armorbar"].UpdateValue(player.Armor);
+            HUD_Elements["messagebox"].UpdateValue((float)Math.Clamp(deltaTime, 0.0f, 0.1f));
+
+            foreach (HUD_Element element in HUD_Elements.Values)
+            {
+                element.CheckIfEnabled(player.Inventory);
+            }
+        }
+
+        public void LevelReset()
+        {
+            HUD_Elements["messagebox"].UpdateValue(false);
+        }
+
+        public void QueueMessage(string message)
+        {
+            HUD_Elements["messagebox"].QueueValue(message);
+        }
+
         private void GenerateGL_Data(float aspectRatio)
         {
             List<float> HUD_GL_Data = [], Text_GL_Data = [];
 
-            foreach (HUD_Element element in HUD_Elements)
+            foreach (HUD_Element element in HUD_Elements.Values)
             {
                 if (element.elementType != HUD_Element.HUD_ElementType.Text)
                 {
@@ -112,22 +138,12 @@ namespace Game1
             List<float> gl_data = [];
 
             Plane p1 = new((0, 0, 0), (0, 0, 1), 0.0078125f, 0.0625f, 1, 1.0f);
-            foreach (Triangle triangle in p1.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
 
             Plane p2 = new((0, 0, 0), (0, 0, 1), 0.0625f, 0.0078125f, 1, 1.0f);
-            foreach (Triangle triangle in p2.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
+            
+            gl_data.AddRange(p1.GenerateFloatData((0,0,0)));
+            gl_data.AddRange(p2.GenerateFloatData((0,0,0)));
+
             return [.. gl_data];
         }
     }
@@ -163,22 +179,12 @@ namespace Game1
             List<float> gl_data = [];
 
             Plane p1 = new(centre, (0, 0, 1f), 0.5f, 0.05f, 1, 1.0f);
-            foreach (Triangle triangle in p1.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
 
             Plane p2 = new(centre + ((0.49f * 0.5f * (shownValue / maxValue)) - (0.49f * 0.5f), 0, 0), (0, 0, 1), 0.49f * (shownValue / maxValue), 0.040f, textureIndex, 1.0f);
-            foreach (Triangle triangle in p2.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
+            
+            gl_data.AddRange(p1.GenerateFloatData((0,0,0)));
+            gl_data.AddRange(p2.GenerateFloatData((0,0,0)));
+
             return [.. gl_data];
         }
     }
@@ -190,14 +196,10 @@ namespace Game1
         {
             List<float> gl_data = [];
 
-            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y, textureIndex, 1.0f);
-            foreach (Triangle triangle in p2.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
+            Plane rect = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y, textureIndex, 1.0f);
+
+            gl_data.AddRange(rect.GenerateFloatData((0,0,0)));
+
             return [.. gl_data];
         }
     }
@@ -221,14 +223,10 @@ namespace Game1
 
             List<float> gl_data = [];
 
-            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y * aspectRatio, textureIndex, 1.0f);
-            foreach (Triangle triangle in p2.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
+            Plane rect = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y * aspectRatio, textureIndex, 1.0f);
+            
+            gl_data.AddRange(rect.GenerateFloatData((0,0,0)));
+
             return [.. gl_data];
         }
 
@@ -268,14 +266,10 @@ namespace Game1
 
             List<float> gl_data = [];
 
-            Plane p2 = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y * aspectRatio, selectedWeapon + 8, 1.0f);
-            foreach (Triangle triangle in p2.ConvertToTriangles())
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    gl_data.AddRange(triangle.coordinates[i].X, triangle.coordinates[i].Y, triangle.coordinates[i].Z, triangle.textureCoordinates[i].X, triangle.textureCoordinates[i].Y, triangle.directionIndex);
-                }
-            }
+            Plane rect = new((centreCoord.X, centreCoord.Y, 0f), (0, 0, 1), widthHeightScale.X, widthHeightScale.Y * aspectRatio, selectedWeapon + 8, 1.0f);
+            
+            gl_data.AddRange(rect.GenerateFloatData((0,0,0)));
+            
             return [.. gl_data];
         }
     }

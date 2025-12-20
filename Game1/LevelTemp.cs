@@ -1,7 +1,7 @@
 namespace Game1
 {
 
-    public abstract class LevelTemp
+    /*public abstract class LevelTemp
     {
 
         public static Level level1Return()
@@ -405,6 +405,6 @@ namespace Game1
             0.03125f,-0.00390625f,0f,0.5f,0.75f,1.0f,
         ];
 
-    }
+    }*/
 
 }
