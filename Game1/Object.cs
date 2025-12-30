@@ -1,5 +1,3 @@
-using System.Reflection.Metadata.Ecma335;
-using Game2;
 using OpenTK.Mathematics;
 
 namespace Game1
@@ -346,7 +344,7 @@ namespace Game1
         public override void HandleInteract(ref List<HeldItem> heldItems, ref HUD HUD_Object)
         {
             HUD_Object.QueueMessage("Level complete!");
-            HUD_Object.LevelReset();
+            HUD_Object.CallNewLevel();
         }
     }
 
