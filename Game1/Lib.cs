@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace Game2
+namespace Game1
 {
     public abstract class CustomVector3Extension
     {
