@@ -35,6 +35,13 @@ public class Entity : Object
             return alive;
         }
 
+        public static void LoadFromFile(out Entity entity, ref BinaryReader levelFile)
+        {
+            entity = new Entity(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
+                                (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), 
+                                levelFile.ReadInt32(), levelFile.ReadBoolean(), Entity.EntityType.None);
+        }
+
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
             List<float> openGLData = [];
@@ -49,6 +56,11 @@ public class Entity : Object
             Plane entitySprite = new(Position, front, scale.X, scale.Y, textureIndex, 1.0f);
 
             return entitySprite.GenerateFloatData(playerRotation);
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            levelWriter.Write((byte)entityType);
         }
     }
 
@@ -120,6 +132,25 @@ public class Entity : Object
             {
                 actionTimer -= deltaTime;
             }
+        }
+
+        public static void LoadFromFile(out Enemy entity, ref BinaryReader levelFile)
+        {
+            entity = new Enemy(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadBoolean());
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            base.ExportToFile(ref levelWriter);
+
+            CustomVector3Extension.WriteVector3ToFile(origin, ref levelWriter);
+            levelWriter.Write(scale.X);
+            levelWriter.Write(scale.Y);
+            levelWriter.Write(textureIndex);
+            levelWriter.Write(healthChange);
+            levelWriter.Write(maxHealth);
+            levelWriter.Write(pathfinding);
         }
 
         public override void HandleClickedOn(float attackDamage)
@@ -281,6 +312,25 @@ public class Entity : Object
         }
 
         public ItemsEnum returnItem = returnItemIn;
+
+        public static void LoadFromFile(out Item entity , ref BinaryReader levelFile)
+        {
+            entity = new Item(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
+                                (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), (Item.ItemsEnum)levelFile.ReadByte());
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            base.ExportToFile(ref levelWriter);
+
+            CustomVector3Extension.WriteVector3ToFile(origin, ref levelWriter);
+            levelWriter.Write(scale.X);
+            levelWriter.Write(scale.Y);
+            levelWriter.Write(textureIndex);
+            levelWriter.Write(healthChange);
+            levelWriter.Write(pathfinding);
+            levelWriter.Write((byte)returnItem);
+        }
 
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
         {

@@ -1,18 +1,17 @@
 namespace Game1
 {
 
-    /*public abstract class LevelTemp
+    public abstract class LevelTemp
     {
 
-        public static Level level1Return()
+        public static Level Level1Return()
         {
             Level levelStore = new();
             // --- Level ---
-            //Level.ImportLevelFromFile("Levels/demo.lvl", out levelStore);
 
             // room 1 decal
             levelStore.levelObjects.Add(new Button((0.75f, 0, 0.99f), (0f, 0, -1.0f), 0.25f, 0.25f, 7, 8, 0.8f, HeldItem.Colors.Red));
-            levelStore.levelObjects.Add(new Button((-0.75f, 0, 0.99f), (0f, 0, -1.0f), 0.25f, 0.25f, 7, 8, 0.8f, HeldItem.Colors.Green));
+            //levelStore.levelObjects.Add(new Button((-0.75f, 0, 0.99f), (0f, 0, -1.0f), 0.25f, 0.25f, 7, 8, 0.8f, HeldItem.Colors.Green));
 
             // room 1
             levelStore.levelObjects.Add(new Cube((0, 0, -1.25f), 2.0f, 1.0f, 0.5f, 4)); // back wall
@@ -308,18 +307,18 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((4f, 1f, 22.75f), 2.0f, 1.0f, 0.5f, 5));
             levelStore.levelObjects.Add(new Cube((4f, 0f, 22.75f), 2.0f, 1.0f, 0.5f, 5));
 
+            levelStore.successfullyLoaded = true;
+
             levelStore.Sync_GL_Level();
 
-            levelStore.ExportToFile("Levels/level1.lvl");
+            //levelStore.ExportToFile("Levels/level1.lvl");
 
             return levelStore;
         }
 
-        public static Level demoReturn()
+        public static Level DemoReturn()
         {
             Level levelStore = new();
-
-            levelStore = new();
             
             // room 1 decal
             levelStore.levelObjects.Add(new LevelEndButton((0.99f, 0, 0), (-1.0f, 0, 0), 0.5f, 0.5f, 4, 0, 0.8f));
@@ -368,43 +367,9 @@ namespace Game1
 
             levelStore.Sync_GL_Level();
 
-            levelStore.ExportToFile("Levels/demo.lvl");
+            //levelStore.ExportToFile("Levels/demo.lvl");
 
             return levelStore;
         }
-
     }
-
-    class UnusedCode {
-
-        private readonly float[] HUD_Vertices = [
-            // health indicator
-            -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
-            -0.875f,-0.625f,0f,0f,1f, 1.0f,
-            -0.625f,-0.625f,0f,0.25f,1f, 1.0f,
-
-            -0.875f,-0.875f,0f,0f,0.75f, 1.0f,
-            -0.625f,-0.625f,0f,0.25f,1f, 1.0f,
-            -0.625f,-0.875f,0f,0.25f,0.75f, 1.0f,
-
-            // crosshair
-            -0.00390625f,-0.03125f,0f,0.25f,0.75f, 1.0f,
-            -0.00390625f,0.03125f,0f,0.25f,1f, 1.0f,
-            0.00390625f,0.03125f,0f,0.5f,1f, 1.0f,
-
-            -0.00390625f,-0.03125f,0f,0.25f,0.75f, 1.0f,
-            0.00390625f,0.03125f,0f,0.5f,1f, 1.0f,
-            0.00390625f,-0.03125f,0f,0.5f,0.75f, 1.0f,
-
-            -0.03125f,-0.00390625f,0f,0.25f,0.75f,1.0f,
-            -0.03125f,0.00390625f,0f,0.25f,1f,1.0f,
-            0.03125f,0.00390625f,0f,0.5f,1f,1.0f,
-
-            -0.03125f,-0.00390625f,0f,0.25f,0.75f,1.0f,
-            0.03125f,0.00390625f,0f,0.5f,1f,1.0f,
-            0.03125f,-0.00390625f,0f,0.5f,0.75f,1.0f,
-        ];
-
-    }*/
-
 }

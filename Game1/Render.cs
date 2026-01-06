@@ -62,7 +62,6 @@ namespace Game1
             GL.VertexAttribPointer(shaderDirection, 1, VertexAttribPointerType.Float, false, 6 * sizeof(float), 5 * sizeof(float));
 
             // set the uniforms up for the shader
-            //levelShader.SetVec4("tintColor", (1, 1, 1, 0));
             levelShader.SetInt("tintEnable", 0);
 
             // enable the depth buffer for triangle sorting
@@ -124,7 +123,7 @@ namespace Game1
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            RenderData(MainMenu, Matrix4.Identity,Matrix4.Identity,Matrix4.Identity);
+            RenderDataWithTransforms(MainMenu, Matrix4.Identity,Matrix4.Identity,Matrix4.Identity);
 
             /*
             
@@ -146,7 +145,9 @@ namespace Game1
             // CALCULATE MATRICES
             Matrix4 model = Matrix4.CreateRotationX(player.moveRotation.X);
 
-            Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(player.upRotation + player.moveRotation)) * new Vector3(0.0f, 0.0f, -1.0f); // by treating the rotations as euler angles and keeping them separate in the code, I can move the player by rotating only around the Y axis, while being able to look up and down as well as around the Y axis. Treating them as euler angles also means I can look around the 'pitch' axis without having to calculate this in the player movement code
+            // by treating the rotations as euler angles and keeping them separate in the code, I can move the player by rotating only around the Y axis, while being able to look up and down as well 
+            // as around the Y axis. Treating them as euler angles also means I can look around the 'pitch' axis without having to calculate this in the player movement code
+            Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(player.upRotation + player.moveRotation)) * new Vector3(0.0f, 0.0f, -1.0f);
 
             Matrix4 view = Matrix4.LookAt(player.Position + (Vector3.UnitY * player.Scale.Y / 2), player.Position + (Vector3.UnitY * player.Scale.Y / 2) + (front.X, front.Y, front.Z), (0, 1, 0));
 
@@ -155,22 +156,22 @@ namespace Game1
             // RENDER STATIC GEOMETRY
             levelTextureAtlas.Use(TextureUnit.Texture0);
             levelShader.SetInt("textureAtlas", 0);
-            RenderData(levelStore.GL_Level, model, view, projection);
+            RenderDataWithTransforms(levelStore.GL_Level, model, view, projection);
 
             // RENDER TILE ENTITIES
             levelTextureAtlas.Use(TextureUnit.Texture0);
             levelShader.SetInt("textureAtlas", 0);
-            RenderData(levelStore.GenerateTileEntityFloatData(), model, view, projection);
+            RenderDataWithTransforms(levelStore.GenerateTileEntityFloatData(), model, view, projection);
 
             // RENDER ENTITIES
             entityAtlas.Use(TextureUnit.Texture2);
             levelShader.SetInt("textureAtlas", 2);
-            RenderData(levelStore.GenerateEntityFloatData(player.upRotation + player.moveRotation), model, view, projection);
+            RenderDataWithTransforms(levelStore.GenerateEntityFloatData(player.upRotation + player.moveRotation), model, view, projection);
 
             //RENDER SKYBOX
             levelTextureAtlas.Use(TextureUnit.Texture0);
             levelShader.SetInt("textureAtlas", 0);
-            RenderData(new Cube(player.Position, 50, 50, 50, 15).GenerateFloatData((0,0,0)), model, view, projection);
+            RenderDataWithTransforms(new Cube(player.Position, 50, 50, 50, 15).GenerateFloatData((0,0,0)), model, view, projection);
 
             // DISABLE DEPTH CAP
             GL.Disable(EnableCap.DepthTest);
@@ -179,19 +180,25 @@ namespace Game1
             HUD_Object.SyncHUD_GL(WINDOW_WIDTH / WINDOW_HEIGHT);
             hudAtlas.Use(TextureUnit.Texture1);
             levelShader.SetInt("textureAtlas", 1);
-            RenderData(HUD_Object.HUD_GL, Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+            RenderData(HUD_Object.HUD_GL);
 
             // RENDER TEXT
             font.Use(TextureUnit.Texture4);
             levelShader.SetInt("textureAtlas", 4);
-            RenderData(HUD_Object.TextElementGL, Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
+            RenderData(HUD_Object.TextElementGL);
         }
 
-        private void RenderData(float[] data, Matrix4 model, Matrix4 view, Matrix4 projection)
+        private void RenderDataWithTransforms(float[] data, Matrix4 model, Matrix4 view, Matrix4 projection)
         {
             GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, BufferUsageHint.StreamDraw);
             levelShader.Use(model, view, projection);
             GL.DrawArrays(PrimitiveType.Triangles, 0, data.Length / 6);
+        }
+
+        private void RenderData(float[] data)
+        {
+            // UI and Text need to be rendered without moving or rotating
+            RenderDataWithTransforms(data, Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
         }
 
         public void Dispose()

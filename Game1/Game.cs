@@ -20,7 +20,8 @@ namespace Game1
         private string[] InitialLevelNames = [];
         private Queue<string> LevelFileNames = [];
         private string currentLevel = "";
-
+        private bool gameReset = true;
+        
 
         private Player player;
         private Renderer renderer;
@@ -33,7 +34,7 @@ namespace Game1
         public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
-            // caps framerate to 480 FPS unless on macos which is limited to 120
+            // caps framerate to 480 FPS unless on macos which is limited to 120 for battery life
             UpdateFrequency = 480;
             if (OperatingSystem.IsMacOS())
             {
@@ -106,7 +107,8 @@ namespace Game1
                 case GameState.Menu:
                     if (KeyboardState.IsKeyPressed(Keys.Enter))
                     {
-                        gameState = GameState.Loading;
+                        gameState = GameState.Reset;
+                        gameReset = true;
                     }
                     break;
                 case GameState.Pause:
@@ -244,7 +246,13 @@ namespace Game1
 
         private void Reset_OnFrameUpdate()
         {
+            if (currentLevel == "" || gameReset)
+            {
+                Loading_OnFrameUpdate();
+                gameReset = false;
+            }
             Level.ImportLevelFromFile(currentLevel, out levelStore);
+            
             if (!levelStore.successfullyLoaded)
             {
                 Close();

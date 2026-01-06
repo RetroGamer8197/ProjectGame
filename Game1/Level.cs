@@ -118,18 +118,18 @@ namespace Game1 {
                             switch (entityType)
                             {
                                 case Entity.EntityType.None:
-                                    level.levelObjects.Add(new Entity((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), Entity.EntityType.None));
+                                    Entity.LoadFromFile(out Entity entityTemp, ref levelFile);
+                                    level.levelObjects.Add(entityTemp);
                                     break;
 
                                 case Entity.EntityType.Enemy:
-                                    level.levelObjects.Add(new Enemy((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                        (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadBoolean()));
+                                    Enemy.LoadFromFile(out Enemy enemyTemp, ref levelFile);
+                                    level.levelObjects.Add(enemyTemp);
                                     break;
 
                                 case Entity.EntityType.Item:
-                                    level.levelObjects.Add(new Item((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                        (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), (Item.ItemsEnum)levelFile.ReadByte()));
+                                    Item.LoadFromFile(out Item itemTemp, ref levelFile);
+                                    level.levelObjects.Add(itemTemp);
                                     break;
                             }
                             break;
@@ -152,10 +152,24 @@ namespace Game1 {
             {
                 Console.WriteLine("Possibly corrupt level file!");
                 level.successfullyLoaded = false;
+                levelFile.Close();
                 return;
             }
+            levelFile.Close();
             level.Sync_GL_Level();
-            
+        }
+
+        public void ExportToFile(string levelFileName)
+        {
+            BinaryWriter levelWriter = new(File.Open(levelFileName, FileMode.Create));
+
+            foreach (Object obj in levelObjects)
+            {
+                levelWriter.Write((byte)obj.objectType);
+                obj.ExportToFile(ref levelWriter);
+            }
+
+            levelWriter.Close();
         }
     }
 

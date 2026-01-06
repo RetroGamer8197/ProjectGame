@@ -1,3 +1,4 @@
+using OpenTK.Graphics.ES11;
 using OpenTK.Mathematics;
 
 namespace Game1
@@ -46,6 +47,10 @@ namespace Game1
         {
             return[];
         }
+        public virtual void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            
+        }
     }
 
     public class Triangle : Object
@@ -85,6 +90,23 @@ namespace Game1
             directionIndex = levelReader.ReadSingle();
 
             triangleOutput = new(v1, v2, v3, [tc1, tc2, tc3], directionIndex);
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            foreach (Vector3 c3 in coordinates)
+            {
+                CustomVector3Extension.WriteVector3ToFile(c3, ref levelWriter);
+            }
+
+            foreach (Vector2 tc in textureCoordinates)
+            {
+                levelWriter.Write(tc.X);
+                levelWriter.Write(tc.Y);
+            }
+
+            levelWriter.Write((byte)0);
+            levelWriter.Write(directionIndex);        
         }
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
@@ -159,6 +181,16 @@ namespace Game1
             directionIndexIn = levelReader.ReadSingle();
 
             plane = new(centreTemp, normalTemp, widthTemp, heightTemp, textureIndexTemp, directionIndexIn);
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            CustomVector3Extension.WriteVector3ToFile(normal, ref levelWriter);
+            levelWriter.Write(width);
+            levelWriter.Write(height);
+            levelWriter.Write(textureIndex);
+            levelWriter.Write(directionIndex);
         }
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
@@ -264,6 +296,18 @@ namespace Game1
             button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn, color);
         }
 
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            CustomVector3Extension.WriteVector3ToFile(normal, ref levelWriter);
+            levelWriter.Write(width);
+            levelWriter.Write(height);
+            levelWriter.Write(activeTextureIndex);
+            levelWriter.Write(inactiveTextureIndex);
+            levelWriter.Write(directionIndex);
+            levelWriter.Write((byte)buttonColor);
+        }
+
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
             float distanceAllowedXZ = new Vector2(width / 2, width / 2).LengthSquared;
@@ -339,6 +383,17 @@ namespace Game1
             directionIndexIn = levelReader.ReadSingle();
 
             button = new(centreTemp, normalTemp, widthTemp, heightTemp, activeTextureIndex, inactiveTextureIndex, directionIndexIn);
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            CustomVector3Extension.WriteVector3ToFile(normal, ref levelWriter);
+            levelWriter.Write(width);
+            levelWriter.Write(height);
+            levelWriter.Write(activeTextureIndex);
+            levelWriter.Write(inactiveTextureIndex);
+            levelWriter.Write(directionIndex);
         }
 
         public override void HandleInteract(ref List<HeldItem> heldItems, ref HUD HUD_Object)
@@ -469,6 +524,15 @@ namespace Game1
 
             cube = new(centreTemp, scaleX, scaleY, scaleZ, TextureIndexIn);
         }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            levelWriter.Write(scaleX);
+            levelWriter.Write(scaleY);
+            levelWriter.Write(scaleZ);
+            levelWriter.Write(textureIndex);
+        }
     }
 
     public class Door : Cube
@@ -535,6 +599,17 @@ namespace Game1
             defaultState = levelReader.ReadBoolean();
 
             door = new(centreTemp, scaleX, scaleY, scaleZ, TextureIndexIn, color, defaultState);
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            levelWriter.Write(scaleX);
+            levelWriter.Write(scaleY);
+            levelWriter.Write(scaleZ);
+            levelWriter.Write(textureIndex);
+            levelWriter.Write((byte)ActivatorColor);
+            levelWriter.Write(defaultState);
         }
     }
 }
