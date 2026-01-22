@@ -21,6 +21,7 @@ namespace Game1
         private Queue<string> LevelFileNames = [];
         private string currentLevel = "";
         private bool gameReset = true;
+        private bool FileLoadingEnabled = false;
         
 
         private Player player;
@@ -72,7 +73,6 @@ namespace Game1
             // --- HUD ---
             HUD_Object = new();
 
-            // crosshair
             HUD_Object.AddHUD_Element("crosshair", new Crosshair());
             HUD_Object.AddHUD_Element("healthbar", new HealthBar(100f, (-0.7f, -0.8f, 0), 2));
             HUD_Object.AddHUD_Element("ammoindicator", new HealthBar(1.0f, (0.7f, -0.8f, 0), 3));
@@ -211,23 +211,22 @@ namespace Game1
             }
 
             // MANAGE TEMPORARY OBJECTS (PROJECTILES)
-            Stack<Object> aliveTempObjects = [];
+            Stack<Object> deadTempObjects = [];
             foreach (Object tempObject in levelStore.temporaryObjects)
             {
                 if (tempObject.objectType == Object.ObjectType.Entity)
                 {
                     tempObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player);
                 }
-                if (((Entity)tempObject).getAliveState())
+                if (!((Entity)tempObject).getAliveState())
                 {
-                    aliveTempObjects.Push(tempObject);
+                    deadTempObjects.Push(tempObject);
                 }
             }
 
-            levelStore.temporaryObjects = [];
-            while (aliveTempObjects.Count > 0)
+            while (deadTempObjects.Count > 0)
             {
-                levelStore.temporaryObjects.Add(aliveTempObjects.Pop());
+                levelStore.temporaryObjects.Remove(deadTempObjects.Pop());
             }
 
             // TICK TINT TIMER
@@ -264,27 +263,38 @@ namespace Game1
 
         private void Loading_OnFrameUpdate()
         {
-            if (LevelFileNames.Count > 0)
+            if (FileLoadingEnabled)
             {
-                currentLevel = LevelFileNames.Dequeue();
-                Level.ImportLevelFromFile(currentLevel, out levelStore);
-                if (!levelStore.successfullyLoaded)
+                if (LevelFileNames.Count > 0)
                 {
-                    Console.WriteLine("Error loading level!");
-                    Close();
+                    currentLevel = LevelFileNames.Dequeue();
+                    Level.ImportLevelFromFile(currentLevel, out levelStore);
+                    if (!levelStore.successfullyLoaded)
+                    {
+                        Console.WriteLine("Error loading level!");
+                        Close();
+                    }
+                    HUD_Object.LevelReset();
+                    player.NewLevel();
+                    gameState = GameState.Level;
+                } else
+                {
+                    LevelFileNames = [];
+                    foreach (string levelName in InitialLevelNames)
+                    {
+                        LevelFileNames.Enqueue(levelName);
+                    }
+                    gameState = GameState.Menu;
                 }
+            } else
+            {
+                levelStore = LevelTemp.Level1Return();
+                levelStore.ExportToFile("Levels/level1.lvl");
                 HUD_Object.LevelReset();
                 player.NewLevel();
                 gameState = GameState.Level;
-            } else
-            {
-                LevelFileNames = [];
-                foreach (string levelName in InitialLevelNames)
-                {
-                    LevelFileNames.Enqueue(levelName);
-                }
-                gameState = GameState.Menu;
             }
+            
         }
 
         private void Pause_OnFrameUpdate()

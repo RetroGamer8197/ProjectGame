@@ -52,7 +52,7 @@ namespace Game1 {
             return [..tileEntityFloatData];
         }
 
-        public float[] GenerateEntityFloatData(Vector3 playerRotation)
+        public float[] GenerateEntityFloatData(Vector3 playerRotation, bool enemiesOnly)
         {
             List<float> entityFloatData = [];
 
@@ -60,14 +60,20 @@ namespace Game1 {
             {
                 if (levelObject.objectType == Object.ObjectType.Entity)
                 {
-                    entityFloatData.AddRange(levelObject.GenerateFloatData(playerRotation));
+                    if (((Entity)levelObject).entityType != Entity.EntityType.Enemy ^ enemiesOnly)
+                    {
+                        entityFloatData.AddRange(levelObject.GenerateFloatData(playerRotation));
+                    }
                 }
             }
             foreach (Object tempObject in temporaryObjects)
             {
                 if (tempObject.objectType == Object.ObjectType.Entity)
                 {
-                    entityFloatData.AddRange(tempObject.GenerateFloatData(playerRotation));
+                    if (((Entity)tempObject).entityType != Entity.EntityType.Enemy ^ enemiesOnly)
+                    {
+                        entityFloatData.AddRange(tempObject.GenerateFloatData(playerRotation));
+                    }
                 }
             }
 

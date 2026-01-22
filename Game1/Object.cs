@@ -486,7 +486,7 @@ namespace Game1
 
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
-            bool isCollision = CheckCollision(input, new(stepScale));
+            bool isCollision = CheckCollision(input, new(stepScale / 2));
 
             if (isCollision) {
                 distanceFrom = 0;

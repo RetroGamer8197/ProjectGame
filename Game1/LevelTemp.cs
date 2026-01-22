@@ -71,8 +71,8 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 5.75f), 2.0f, 0.5f, 0.5f, 6));
 
             // entities
-            levelStore.levelObjects.Add(new Enemy((1, -0.1f, 4.5f), (0.6f, 0.9f), 13, 20, 100, true));
-            levelStore.levelObjects.Add(new Enemy((-1, -0.1f, 4.5f), (0.6f, 0.9f), 13, 20, 100, true));
+            levelStore.levelObjects.Add(new Enemy((1, -0.1f, 4.5f), (0.6f, 0.9f), 12, 20, 100, 11, true));
+            levelStore.levelObjects.Add(new Enemy((-1, -0.1f, 4.5f), (0.6f, 0.9f), 12, 20, 100, 11, true));
 
             // corridor 1
 
@@ -359,9 +359,9 @@ namespace Game1
             levelStore.levelObjects.Add(new Cube((0, -0.75f, 10.5f), 10.0f, 0.5f, 10.0f, 3));
 
             // entity test
-            levelStore.levelObjects.Add(new Enemy((0, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, 10f, false));
-            levelStore.levelObjects.Add(new Enemy((5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, 10f, false));
-            levelStore.levelObjects.Add(new Enemy((-5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, 10f, false));
+            levelStore.levelObjects.Add(new Enemy((0, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, 10f, 11, false));
+            levelStore.levelObjects.Add(new Enemy((5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, 10f, 11, false));
+            levelStore.levelObjects.Add(new Enemy((-5.0f, -0.125f, 5.0f), (0.5f, 0.75f), 1, 0, 10f, 11, false));
 
             levelStore.levelObjects.Add(new Item((0.0f, -0.25f, 8.0f), (0.5f, 0.5f), 2, +10, false, Item.ItemsEnum.SmallMedkit));
 

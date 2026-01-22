@@ -44,7 +44,6 @@ public class Entity : Object
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
-            List<float> openGLData = [];
 
             if (!alive)
             {
@@ -64,12 +63,14 @@ public class Entity : Object
         }
     }
 
-    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
+    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, int projectileTextureIndex, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
     {
         float health = maxHealth;
         public float maxHealth = maxHealth;
         readonly float startingActionTimer = new Random().Next(3, 7);
         float actionTimer = 5.0f;
+        float animationTimer = 0.0f;
+        protected int animationFrame = 0;
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
         {
             if (!alive)
@@ -78,8 +79,9 @@ public class Entity : Object
             }
             Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
 
+            bool canSeePlayer = RaycastToPlayer(playerPosition, ref level);
             // check if the enemy has line of sight with the player
-            if (!RaycastToPlayer(playerPosition, ref level) || !pathfinding)// || (directionVector.LengthSquared > 25))
+            if (!canSeePlayer || !pathfinding)// || (directionVector.LengthSquared > 25))
             {
                 directionVector = (0, 0, 0); //(new Random().Next(-5, 5), 0, new Random().Next(-5, 5));
             }
@@ -126,18 +128,31 @@ public class Entity : Object
                 if (randomNum.Next(0, 300) > 250)
                 {
                     actionTimer = startingActionTimer;
-                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), 7, healthChange, playerPosition - Position, 3.0f));
+                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, playerPosition - Position, 3.0f));
                 }
             } else
             {
                 actionTimer -= deltaTime;
             }
+            if (canSeePlayer) // directionVector.Length > 0.1f || 
+            {
+                animationTimer += deltaTime;
+                if (animationTimer > 0.25f)
+                {
+                    animationFrame += 1;
+                    if (animationFrame > 1)
+                    {
+                        animationFrame = 0;
+                    }
+                }
+            }
+            
         }
 
         public static void LoadFromFile(out Enemy entity, ref BinaryReader levelFile)
         {
             entity = new Enemy(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
-                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadBoolean());
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadBoolean());
         }
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
@@ -150,6 +165,7 @@ public class Entity : Object
             levelWriter.Write(textureIndex);
             levelWriter.Write(healthChange);
             levelWriter.Write(maxHealth);
+            levelWriter.Write(projectileTextureIndex);
             levelWriter.Write(pathfinding);
         }
 
@@ -258,18 +274,32 @@ public class Entity : Object
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
+
             if (!alive)
             {
                 return [];
             }
 
-            return base.GenerateFloatData(playerRotation);
+            Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(playerRotation)) * new Vector3(0.0f, 0.0f, 1.0f);
+
+            Plane entitySprite = new(Position, front, scale.X, scale.Y, textureIndex + animationFrame, 1.0f);
+
+            return entitySprite.GenerateFloatData(playerRotation);
         }
     }
 
-    public class Projectile(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, Vector3 directionToTravel, float speedIn) : Enemy(position, scaleIn, textureIndexIn, healthChangeIn, 1, false)
+    public class Projectile : Enemy
     {
-        private float speed = speedIn;
+        private float speed;
+        Vector3 directionToTravel, initialPosition;
+
+        public Projectile(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, Vector3 _directionToTravel, float speedIn):  base(position, scaleIn, textureIndexIn, healthChangeIn, 1, -1, false)
+        {
+            speed = speedIn;
+            directionToTravel = _directionToTravel;
+            initialPosition = position;
+
+        }
         public override void HandleClickedOn(float attackDamage)
         {
 
@@ -299,6 +329,10 @@ public class Entity : Object
                 {
                     alive = false;
                     player.Damage(healthChange);
+                }
+                if ((Position - initialPosition).Length > 50f)
+                {
+                    alive = false;
                 }
             }
         }

@@ -8,7 +8,7 @@ namespace Game1
     {
         private int VertexBufferObject, VertexArrayObject;
         private double tintDuration = -1;
-        private Texture levelTextureAtlas, hudAtlas, entityAtlas, mainMenuImage, font;
+        private Texture levelTextureAtlas, hudAtlas, entityAtlas, enemyAtlas, mainMenuImage, font;
         public Shader levelShader;
 
 
@@ -90,6 +90,9 @@ namespace Game1
 
                 currentFileName = "Textures/font.png";
                 font = new("Textures/font.png", TextureUnit.Texture4, true);
+
+                currentFileName = "Textures/enemyAtlas.png";
+                enemyAtlas = new("Textures/enemyAtlas.png", TextureUnit.Texture5, false);
             }
             catch (FileNotFoundException)
             {
@@ -147,11 +150,16 @@ namespace Game1
 
             // by treating the rotations as euler angles and keeping them separate in the code, I can move the player by rotating only around the Y axis, while being able to look up and down as well 
             // as around the Y axis. Treating them as euler angles also means I can look around the 'pitch' axis without having to calculate this in the player movement code
-            Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(player.upRotation + player.moveRotation)) * new Vector3(0.0f, 0.0f, -1.0f);
+            //Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(player.upRotation + player.moveRotation)) * new Vector3(0.0f, 0.0f, -1.0f);
 
-            Matrix4 view = Matrix4.LookAt(player.Position + (Vector3.UnitY * player.Scale.Y / 2), player.Position + (Vector3.UnitY * player.Scale.Y / 2) + (front.X, front.Y, front.Z), (0, 1, 0));
+            Vector3 front = Matrix3.CreateRotationY(player.moveRotation.Y) * Matrix3.CreateRotationX(player.upRotation.X) * new Vector3(0.0f, 0.0f, -1.0f);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
+            //Matrix4 view = Matrix4.LookAt(player.Position + (Vector3.UnitY * player.Scale.Y / 2), player.Position + (Vector3.UnitY * player.Scale.Y / 2) + (front.X, front.Y, front.Z), (0, 1, 0));
+            Matrix4 view = CustomMatrix4.GenerateViewMatrix(player.Position + (Vector3.UnitY * player.Scale.Y / 2), front, new(0,1,0));
+
+            //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
+
+            Matrix4 projection = CustomMatrix4.MakeFrustum((float)Math.PI / 2f, WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100f);
 
             // RENDER STATIC GEOMETRY
             levelTextureAtlas.Use(TextureUnit.Texture0);
@@ -166,7 +174,12 @@ namespace Game1
             // RENDER ENTITIES
             entityAtlas.Use(TextureUnit.Texture2);
             levelShader.SetInt("textureAtlas", 2);
-            RenderDataWithTransforms(levelStore.GenerateEntityFloatData(player.upRotation + player.moveRotation), model, view, projection);
+            RenderDataWithTransforms(levelStore.GenerateEntityFloatData(player.upRotation + player.moveRotation, false), model, view, projection);
+
+            // RENDER ENTITIES
+            enemyAtlas.Use(TextureUnit.Texture5);
+            levelShader.SetInt("textureAtlas", 5);
+            RenderDataWithTransforms(levelStore.GenerateEntityFloatData(player.upRotation + player.moveRotation, true), model, view, projection);
 
             //RENDER SKYBOX
             levelTextureAtlas.Use(TextureUnit.Texture0);
