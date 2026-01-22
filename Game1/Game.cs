@@ -11,7 +11,7 @@ namespace Game1
 
         public enum GameState
         {
-            Menu, Level, Pause, Loading, Reset, None
+            Menu, Level, Pause, Loading, Reset, Error, None
         }
 
 
@@ -21,7 +21,7 @@ namespace Game1
         private Queue<string> LevelFileNames = [];
         private string currentLevel = "";
         private bool gameReset = true;
-        private bool FileLoadingEnabled = false;
+        private bool FileLoadingEnabled = true;
         
 
         private Player player;
@@ -51,6 +51,9 @@ namespace Game1
             renderer = new(out bool rendererInitSuccess);
             if (!rendererInitSuccess)
             {
+                PopupWindow popup = new(400, 20, "Failure to initialise the renderer");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Failure to initialise the renderer");
                 Close();
             }
@@ -123,6 +126,13 @@ namespace Game1
                 case GameState.Reset:
                     Reset_OnFrameUpdate();
                     break;
+                case GameState.Error:
+                    PopupWindow popup = new(400, 20, "An unknown error has occurred");
+                    popup.CenterWindow();
+                    popup.Run();
+                    Console.WriteLine("An unknown error has occurred");
+                    Close();
+                    break;
             }
         }
 
@@ -157,6 +167,9 @@ namespace Game1
                     if (fileHeader != "ProjectGame 1.1 | Files 2.0")
                     {
                         // if the first line is not equal to the string "ProjectGame 1.1 | Files 2.0", the file is in the wrong format
+                        PopupWindow popup = new(400, 20, "Level names file is incorrect format");
+                        popup.CenterWindow();
+                        popup.Run();
                         Console.WriteLine("Level names file is incorrect format");
                         Close();
                     }
@@ -172,6 +185,9 @@ namespace Game1
                     levelNames.Close();
             } catch (FileNotFoundException)
             {
+                PopupWindow popup = new(500, 20, "Level names file is missing! Game load cannot continue");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Level names file is missing! Game load cannot continue");
                 Close();
             }
@@ -250,15 +266,22 @@ namespace Game1
                 Loading_OnFrameUpdate();
                 gameReset = false;
             }
-            Level.ImportLevelFromFile(currentLevel, out levelStore);
             
-            if (!levelStore.successfullyLoaded)
+            if (gameState == GameState.Error)
             {
                 Close();
             }
-            HUD_Object.LevelReset();
-            player.LevelReset();
-            gameState = GameState.Level;
+            else {
+                Level.ImportLevelFromFile(currentLevel, out levelStore);
+            
+                if (!levelStore.successfullyLoaded)
+                {
+                    Close();
+                }
+                HUD_Object.LevelReset();
+                player.LevelReset();
+                gameState = GameState.Level;
+            }
         }
 
         private void Loading_OnFrameUpdate()
@@ -271,12 +294,17 @@ namespace Game1
                     Level.ImportLevelFromFile(currentLevel, out levelStore);
                     if (!levelStore.successfullyLoaded)
                     {
+                        PopupWindow popup = new(500, 20, "Error loading level!");
+                        popup.CenterWindow();
+                        popup.Run();
                         Console.WriteLine("Error loading level!");
-                        Close();
+                        gameState = GameState.Error;
+                    } else
+                    {
+                        HUD_Object.LevelReset();
+                        player.NewLevel();
+                        gameState = GameState.Level;
                     }
-                    HUD_Object.LevelReset();
-                    player.NewLevel();
-                    gameState = GameState.Level;
                 } else
                 {
                     LevelFileNames = [];
@@ -288,8 +316,8 @@ namespace Game1
                 }
             } else
             {
-                levelStore = LevelTemp.Level1Return();
-                levelStore.ExportToFile("Levels/level1.lvl");
+                levelStore = LevelTemp.DemoReturn();
+                levelStore.ExportToFile("Levels/demo.lvl");
                 HUD_Object.LevelReset();
                 player.NewLevel();
                 gameState = GameState.Level;

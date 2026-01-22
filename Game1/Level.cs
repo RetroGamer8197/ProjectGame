@@ -92,7 +92,10 @@ namespace Game1 {
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine("Missing file: {0}", fileLocation);
+                PopupWindow popup = new(500, 20, $"Missing file: {fileLocation}");
+                popup.CenterWindow();
+                popup.Run();
+                Console.WriteLine($"Missing file: {fileLocation}");
                 level.successfullyLoaded = false;
                 return;
             }
@@ -156,6 +159,9 @@ namespace Game1 {
                 }
             } catch
             {
+                PopupWindow popup = new(500, 20, "Possibly corrupt level file!");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Possibly corrupt level file!");
                 level.successfullyLoaded = false;
                 levelFile.Close();

@@ -96,6 +96,9 @@ namespace Game1
             }
             catch (FileNotFoundException)
             {
+                PopupWindow popup = new(500, 20, $"Missing texture files: {currentFileName}");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Missing texture file(s):");
                 Console.WriteLine("\t" + currentFileName);
                 success = false;
