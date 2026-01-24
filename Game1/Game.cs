@@ -11,7 +11,7 @@ namespace Game1
 
         public enum GameState
         {
-            Menu, Level, Pause, Loading, Reset, None
+            Menu, Level, Pause, Loading, Reset, Error, None
         }
 
 
@@ -20,7 +20,9 @@ namespace Game1
         private string[] InitialLevelNames = [];
         private Queue<string> LevelFileNames = [];
         private string currentLevel = "";
-
+        private bool gameReset = true;
+        private bool FileLoadingEnabled = true;
+        
 
         private Player player;
         private Renderer renderer;
@@ -33,7 +35,7 @@ namespace Game1
         public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
-            // caps framerate to 480 FPS unless on macos which is limited to 120
+            // caps framerate to 480 FPS unless on macos which is limited to 120 for battery life
             UpdateFrequency = 480;
             if (OperatingSystem.IsMacOS())
             {
@@ -49,6 +51,9 @@ namespace Game1
             renderer = new(out bool rendererInitSuccess);
             if (!rendererInitSuccess)
             {
+                PopupWindow popup = new(400, 20, "Failure to initialise the renderer");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Failure to initialise the renderer");
                 Close();
             }
@@ -71,7 +76,6 @@ namespace Game1
             // --- HUD ---
             HUD_Object = new();
 
-            // crosshair
             HUD_Object.AddHUD_Element("crosshair", new Crosshair());
             HUD_Object.AddHUD_Element("healthbar", new HealthBar(100f, (-0.7f, -0.8f, 0), 2));
             HUD_Object.AddHUD_Element("ammoindicator", new HealthBar(1.0f, (0.7f, -0.8f, 0), 3));
@@ -106,7 +110,8 @@ namespace Game1
                 case GameState.Menu:
                     if (KeyboardState.IsKeyPressed(Keys.Enter))
                     {
-                        gameState = GameState.Loading;
+                        gameState = GameState.Reset;
+                        gameReset = true;
                     }
                     break;
                 case GameState.Pause:
@@ -120,6 +125,13 @@ namespace Game1
                     break;
                 case GameState.Reset:
                     Reset_OnFrameUpdate();
+                    break;
+                case GameState.Error:
+                    PopupWindow popup = new(400, 20, "An unknown error has occurred");
+                    popup.CenterWindow();
+                    popup.Run();
+                    Console.WriteLine("An unknown error has occurred");
+                    Close();
                     break;
             }
         }
@@ -155,6 +167,9 @@ namespace Game1
                     if (fileHeader != "ProjectGame 1.1 | Files 2.0")
                     {
                         // if the first line is not equal to the string "ProjectGame 1.1 | Files 2.0", the file is in the wrong format
+                        PopupWindow popup = new(400, 20, "Level names file is incorrect format");
+                        popup.CenterWindow();
+                        popup.Run();
                         Console.WriteLine("Level names file is incorrect format");
                         Close();
                     }
@@ -170,6 +185,9 @@ namespace Game1
                     levelNames.Close();
             } catch (FileNotFoundException)
             {
+                PopupWindow popup = new(500, 20, "Level names file is missing! Game load cannot continue");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Level names file is missing! Game load cannot continue");
                 Close();
             }
@@ -209,23 +227,22 @@ namespace Game1
             }
 
             // MANAGE TEMPORARY OBJECTS (PROJECTILES)
-            Stack<Object> aliveTempObjects = [];
+            Stack<Object> deadTempObjects = [];
             foreach (Object tempObject in levelStore.temporaryObjects)
             {
                 if (tempObject.objectType == Object.ObjectType.Entity)
                 {
                     tempObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player);
                 }
-                if (((Entity)tempObject).getAliveState())
+                if (!((Entity)tempObject).getAliveState())
                 {
-                    aliveTempObjects.Push(tempObject);
+                    deadTempObjects.Push(tempObject);
                 }
             }
 
-            levelStore.temporaryObjects = [];
-            while (aliveTempObjects.Count > 0)
+            while (deadTempObjects.Count > 0)
             {
-                levelStore.temporaryObjects.Add(aliveTempObjects.Pop());
+                levelStore.temporaryObjects.Remove(deadTempObjects.Pop());
             }
 
             // TICK TINT TIMER
@@ -244,39 +261,68 @@ namespace Game1
 
         private void Reset_OnFrameUpdate()
         {
-            Level.ImportLevelFromFile(currentLevel, out levelStore);
-            if (!levelStore.successfullyLoaded)
+            if (currentLevel == "" || gameReset)
+            {
+                Loading_OnFrameUpdate();
+                gameReset = false;
+            }
+            
+            if (gameState == GameState.Error)
             {
                 Close();
             }
-            HUD_Object.LevelReset();
-            player.LevelReset();
-            gameState = GameState.Level;
+            else {
+                Level.ImportLevelFromFile(currentLevel, out levelStore);
+            
+                if (!levelStore.successfullyLoaded)
+                {
+                    Close();
+                }
+                HUD_Object.LevelReset();
+                player.LevelReset();
+                gameState = GameState.Level;
+            }
         }
 
         private void Loading_OnFrameUpdate()
         {
-            if (LevelFileNames.Count > 0)
+            if (FileLoadingEnabled)
             {
-                currentLevel = LevelFileNames.Dequeue();
-                Level.ImportLevelFromFile(currentLevel, out levelStore);
-                if (!levelStore.successfullyLoaded)
+                if (LevelFileNames.Count > 0)
                 {
-                    Console.WriteLine("Error loading level!");
-                    Close();
+                    currentLevel = LevelFileNames.Dequeue();
+                    Level.ImportLevelFromFile(currentLevel, out levelStore);
+                    if (!levelStore.successfullyLoaded)
+                    {
+                        PopupWindow popup = new(500, 20, "Error loading level!");
+                        popup.CenterWindow();
+                        popup.Run();
+                        Console.WriteLine("Error loading level!");
+                        gameState = GameState.Error;
+                    } else
+                    {
+                        HUD_Object.LevelReset();
+                        player.NewLevel();
+                        gameState = GameState.Level;
+                    }
+                } else
+                {
+                    LevelFileNames = [];
+                    foreach (string levelName in InitialLevelNames)
+                    {
+                        LevelFileNames.Enqueue(levelName);
+                    }
+                    gameState = GameState.Menu;
                 }
+            } else
+            {
+                levelStore = LevelTemp.DemoReturn();
+                levelStore.ExportToFile("Levels/demo.lvl");
                 HUD_Object.LevelReset();
                 player.NewLevel();
                 gameState = GameState.Level;
-            } else
-            {
-                LevelFileNames = [];
-                foreach (string levelName in InitialLevelNames)
-                {
-                    LevelFileNames.Enqueue(levelName);
-                }
-                gameState = GameState.Menu;
             }
+            
         }
 
         private void Pause_OnFrameUpdate()

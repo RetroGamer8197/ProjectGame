@@ -18,8 +18,8 @@ namespace Game1
         public int weaponIndex = 0;
         private float floatTime = 0f;
 
-        Weapon[] weapons = [new Weapon(10, 20, Weapon.WeaponTypes.Pistol), new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
-                            new Weapon(30, 30, Weapon.WeaponTypes.Rifle), new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
+        Weapon[] weapons = [new Weapon(10, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun),
+                            new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG)];
 
         public Player(Vector3 positionIn, Vector3 scaleIn, Vector3 moveRotationIn, float healthIn)
         {
@@ -47,8 +47,8 @@ namespace Game1
             Health = 100;
             Armor = 0;
 
-            weapons = [ new Weapon(10, 20, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, Weapon.WeaponTypes.Shotgun),
-                        new Weapon(30, 30, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, Weapon.WeaponTypes.RPG)];
+            weapons = [ new Weapon(10, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun),
+                            new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG)];
         }
 
         public void Damage(float damageIn)
@@ -197,6 +197,11 @@ namespace Game1
             tempY.Y = yVelocity * deltaTime;
 
             NewCollision(tempX, tempY, tempZ, ref levelStore, deltaTime, ref jumping, ref keyboardState);
+
+            foreach (Weapon weapon in weapons)
+            {
+                weapon.TimerTick(deltaTime);
+            }
             
         }
         /*
@@ -459,6 +464,10 @@ namespace Game1
         public int currentMagUsage;
         private int availableAmmo;
         public int UITextureIndex;
+        public readonly float reloadTime;
+        public readonly float shotTime;
+        public float reloadTimer, shotTimer;
+        public bool reloading;
 
         public enum WeaponTypes
         {
@@ -467,21 +476,27 @@ namespace Game1
 
         public WeaponTypes weaponType;
 
-        public Weapon(float _attackDamage, int _magSize, WeaponTypes _weaponType)
+        public Weapon(float _attackDamage, int _magSize, float _reloadTime, float _shotTime, WeaponTypes _weaponType)
         {
             attackDamage = _attackDamage;
             magSize = _magSize;
             weaponType = _weaponType;
             availableAmmo = _magSize;
+            reloadTime = _reloadTime;
+            shotTime = _shotTime;
+            reloadTimer = -1f;
+            shotTimer = -1f;
+            reloading = false;
             Reload();
         }
 
         public float Shoot(ref Renderer renderer)
         {
-            if (currentMagUsage != 0)
+            if (currentMagUsage != 0 && reloadTimer <= 0 && shotTimer <= 0)
             {
                 currentMagUsage--;
                 renderer.FlashColorTint((0.99f, 0.92f, 0.43f, 0.0f));
+                shotTimer = shotTime;
                 return attackDamage;
             }
             else
@@ -492,15 +507,43 @@ namespace Game1
 
         public float GetFullFraction()
         {
-            return ((float)currentMagUsage) / magSize;
+            if (reloadTimer > 0)
+            {
+                return Math.Clamp((reloadTime - reloadTimer) / reloadTime, 0, 1);
+            }
+            else if (shotTimer > 0)
+            {
+                return Math.Clamp(((float)currentMagUsage - 1 + ((shotTime - shotTimer) / shotTime)) / magSize, 0, 1);
+            }
+            else 
+            {
+                return Math.Clamp(((float)currentMagUsage) / magSize, 0, 1);
+            }
         }
 
         public void Reload()
         {
+            int increasedAmmo = 0;
             while (currentMagUsage != magSize && availableAmmo > 0)
             {
                 currentMagUsage++;
+                increasedAmmo++;
                 availableAmmo--;
+                shotTimer = -1f;
+                
+            }
+            reloadTimer = reloadTime * ((float)increasedAmmo / magSize);
+        }
+
+        public void TimerTick(float deltaTime)
+        {
+            if (reloadTimer > 0)
+            {
+                reloadTimer -= deltaTime;
+            }
+            if (shotTimer > 0)
+            {
+                shotTimer -= deltaTime;
             }
         }
 

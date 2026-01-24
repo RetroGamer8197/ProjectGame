@@ -46,6 +46,11 @@ namespace Game1
             HUD_Elements["messagebox"].UpdateValue(false);
         }
 
+        public void CallNewLevel()
+        {
+            HUD_Elements["messagebox"].UpdateValue(true);
+        }
+
         public void QueueMessage(string message)
         {
             HUD_Elements["messagebox"].QueueValue(message);

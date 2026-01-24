@@ -52,7 +52,7 @@ namespace Game1 {
             return [..tileEntityFloatData];
         }
 
-        public float[] GenerateEntityFloatData(Vector3 playerRotation)
+        public float[] GenerateEntityFloatData(Vector3 playerRotation, bool enemiesOnly)
         {
             List<float> entityFloatData = [];
 
@@ -60,14 +60,20 @@ namespace Game1 {
             {
                 if (levelObject.objectType == Object.ObjectType.Entity)
                 {
-                    entityFloatData.AddRange(levelObject.GenerateFloatData(playerRotation));
+                    if (((Entity)levelObject).entityType != Entity.EntityType.Enemy ^ enemiesOnly)
+                    {
+                        entityFloatData.AddRange(levelObject.GenerateFloatData(playerRotation));
+                    }
                 }
             }
             foreach (Object tempObject in temporaryObjects)
             {
                 if (tempObject.objectType == Object.ObjectType.Entity)
                 {
-                    entityFloatData.AddRange(tempObject.GenerateFloatData(playerRotation));
+                    if (((Entity)tempObject).entityType != Entity.EntityType.Enemy ^ enemiesOnly)
+                    {
+                        entityFloatData.AddRange(tempObject.GenerateFloatData(playerRotation));
+                    }
                 }
             }
 
@@ -86,7 +92,10 @@ namespace Game1 {
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine("Missing file: {0}", fileLocation);
+                PopupWindow popup = new(500, 20, $"Missing file: {fileLocation}");
+                popup.CenterWindow();
+                popup.Run();
+                Console.WriteLine($"Missing file: {fileLocation}");
                 level.successfullyLoaded = false;
                 return;
             }
@@ -118,18 +127,18 @@ namespace Game1 {
                             switch (entityType)
                             {
                                 case Entity.EntityType.None:
-                                    level.levelObjects.Add(new Entity((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), Entity.EntityType.None));
+                                    Entity.LoadFromFile(out Entity entityTemp, ref levelFile);
+                                    level.levelObjects.Add(entityTemp);
                                     break;
 
                                 case Entity.EntityType.Enemy:
-                                    level.levelObjects.Add(new Enemy((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                        (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadBoolean()));
+                                    Enemy.LoadFromFile(out Enemy enemyTemp, ref levelFile);
+                                    level.levelObjects.Add(enemyTemp);
                                     break;
 
                                 case Entity.EntityType.Item:
-                                    level.levelObjects.Add(new Item((levelFile.ReadSingle(), levelFile.ReadSingle(), levelFile.ReadSingle()),
-                                        (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), (Item.ItemsEnum)levelFile.ReadByte()));
+                                    Item.LoadFromFile(out Item itemTemp, ref levelFile);
+                                    level.levelObjects.Add(itemTemp);
                                     break;
                             }
                             break;
@@ -150,12 +159,29 @@ namespace Game1 {
                 }
             } catch
             {
+                PopupWindow popup = new(500, 20, "Possibly corrupt level file!");
+                popup.CenterWindow();
+                popup.Run();
                 Console.WriteLine("Possibly corrupt level file!");
                 level.successfullyLoaded = false;
+                levelFile.Close();
                 return;
             }
+            levelFile.Close();
             level.Sync_GL_Level();
-            
+        }
+
+        public void ExportToFile(string levelFileName)
+        {
+            BinaryWriter levelWriter = new(File.Open(levelFileName, FileMode.Create));
+
+            foreach (Object obj in levelObjects)
+            {
+                levelWriter.Write((byte)obj.objectType);
+                obj.ExportToFile(ref levelWriter);
+            }
+
+            levelWriter.Close();
         }
     }
 
