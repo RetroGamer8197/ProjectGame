@@ -86,12 +86,13 @@ namespace Game1
             // very long delta times, such as slow frames or debugging causes objects to fly out of the level so clamping the delta time
             // means this won't happen
             deltaTime = Math.Clamp(deltaTime, 0.0f, 0.1f);
-
+            
             if (keyboardState.IsKeyPressed(Keys.Escape))
             {
                 gameState = Game.GameState.Pause;
             }
 
+            // handles changing weapon
             if (keyboardState.IsKeyPressed(Keys.D1))
             {
                 weaponIndex = 0;
