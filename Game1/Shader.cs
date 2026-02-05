@@ -10,7 +10,7 @@ namespace Game1
 
     public class Shader
     {
-
+        // This file is modified from the tutorial on https://opentk.net/learn/chapter1/4-shaders.html
         public int Handle;
         public int MatrixLocation;
 

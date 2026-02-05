@@ -59,6 +59,8 @@ namespace Game1
 
         public static Matrix4 MakeFrustum(float fovX, float aspectRatio, float front, float back)
         {
+            // This is a reimplimentation of a similar function from OpenGL
+            
             float right = front * (float)Math.Tan(fovX/2);  // half width of near plane
             float top = right / aspectRatio;                // half height of near plane
 

@@ -27,17 +27,33 @@ namespace Game1
 
         public void UpdateElements(ref Player player, float deltaTime)
         {
-            HUD_Elements["weaponicon"].UpdateValue(player.weaponIndex);
-            HUD_Elements["ammotext"].QueueValue(player.GetCurrentWeaponUsageString());
+            // both the pause menu and HUD use this class, but this function will only work if all the following objects are present
+            string[] dependencies = ["weaponicon", "ammotext", "healthbar", "ammoindicator", "armorbar", "messagebox"];
+            bool allDependenciesPresent = true;
 
-            HUD_Elements["healthbar"].UpdateValue(player.Health);
-            HUD_Elements["ammoindicator"].UpdateValue(player.GetCurrentWeaponMagUsage());
-            HUD_Elements["armorbar"].UpdateValue(player.Armor);
-            HUD_Elements["messagebox"].UpdateValue((float)Math.Clamp(deltaTime, 0.0f, 0.1f));
-
-            foreach (HUD_Element element in HUD_Elements.Values)
+            foreach (string dependency in dependencies)
             {
-                element.CheckIfEnabled(player.Inventory);
+                if (!HUD_Elements.ContainsKey(dependency))
+                {
+                    allDependenciesPresent = false;
+                }
+            }
+
+            // if all the objects needed are present, we know this is the HUD
+            if (allDependenciesPresent)
+            {
+                HUD_Elements["weaponicon"].UpdateValue(player.weaponIndex);
+                HUD_Elements["ammotext"].QueueValue(player.GetCurrentWeaponUsageString());
+
+                HUD_Elements["healthbar"].UpdateValue(player.Health);
+                HUD_Elements["ammoindicator"].UpdateValue(player.GetCurrentWeaponMagUsage());
+                HUD_Elements["armorbar"].UpdateValue(player.Armor);
+                HUD_Elements["messagebox"].UpdateValue((float)Math.Clamp(deltaTime, 0.0f, 0.1f));
+
+                foreach (HUD_Element element in HUD_Elements.Values)
+                {
+                    element.CheckIfEnabled(player.Inventory);
+                }
             }
         }
 
