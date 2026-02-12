@@ -8,7 +8,7 @@ namespace Game1
 
     public class Texture
     {
-        // This file is modified from the file on https://opentk.net/learn/chapter1/5-textures.html?tabs=load-texture-opentk4
+        // This file is modified from the file on https://opentk.net/learn/chapter1/5-textures.html
         public int Handle;
         public Texture(string path, TextureUnit textureUnit, bool linearFiltering)
         {
