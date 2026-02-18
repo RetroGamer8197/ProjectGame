@@ -66,13 +66,6 @@ namespace Game1
 
             // CREATE HUD OBJECTS AND ELEMENTS
 
-            /*
-            
-                OLD CODE
-            
-            
-            */
-
             // --- HUD ---
             HUD_Object = new();
 
@@ -158,13 +151,15 @@ namespace Game1
 
         private string[] LoadLevelFileNames()
         {
+            const string correctHeader = "ProjectGame 1.1 | Files 2.0";
+
             string[] levelNamesInitial = [];
             List<string> LevelNamesQueue = [];
             try
             {
                 StreamReader levelNames = new(File.Open("Levels/levelNames.txt", FileMode.Open));
                     string? fileHeader = levelNames.ReadLine();
-                    if (fileHeader != "ProjectGame 1.1 | Files 2.0")
+                    if (fileHeader != correctHeader)
                     {
                         // if the first line is not equal to the string "ProjectGame 1.1 | Files 2.0", the file is in the wrong format
                         PopupWindow popup = new(400, 20, "Level names file is incorrect format");
@@ -272,7 +267,15 @@ namespace Game1
                 Close();
             }
             else {
-                Level.ImportLevelFromFile(currentLevel, out levelStore);
+                if (FileLoadingEnabled)
+                {
+                    Level.ImportLevelFromFile(currentLevel, out levelStore);
+                    gameState = GameState.Level;
+                } else
+                {
+                    gameState = GameState.Loading;
+                }
+                
             
                 if (!levelStore.successfullyLoaded)
                 {
@@ -280,7 +283,6 @@ namespace Game1
                 }
                 HUD_Object.LevelReset();
                 player.LevelReset();
-                gameState = GameState.Level;
             }
         }
 
@@ -316,8 +318,8 @@ namespace Game1
                 }
             } else
             {
-                levelStore = LevelTemp.DemoReturn();
-                levelStore.ExportToFile("Levels/demo.lvl");
+                levelStore = LevelTemp.QuakeReturn();
+                levelStore.ExportToFile("Levels/quake.lvl");
                 HUD_Object.LevelReset();
                 player.NewLevel();
                 gameState = GameState.Level;

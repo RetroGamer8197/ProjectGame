@@ -1,9 +1,10 @@
+using System.Reflection.Metadata;
 using OpenTK.Mathematics;
 
 namespace Game1 {
     public class Level
     {
-        
+        private static readonly string CorrectHeader = "Files 2.0 |";
         public List<Object> levelObjects;
         public List<Object> temporaryObjects;
         
@@ -102,6 +103,17 @@ namespace Game1 {
 
             try
             {
+                string Header = "";
+                int fileHeaderLength = levelFile.ReadByte();
+                for (int i = 0; i < fileHeaderLength; i++)
+                {
+                    Header+= levelFile.ReadChar();
+                }
+                if (Header != CorrectHeader)
+                {
+                    throw new FormatException();
+                }
+                
                 while (!(levelFile.BaseStream.Position == levelFile.BaseStream.Length))
                 {
                     Object.ObjectType type = (Object.ObjectType)levelFile.ReadByte();
@@ -157,7 +169,18 @@ namespace Game1 {
                             break;
                     }
                 }
-            } catch
+            }
+            catch (FormatException)
+            {
+                PopupWindow popup = new(500, 20, "Level file is incorrect format!");
+                popup.CenterWindow();
+                popup.Run();
+                Console.WriteLine("Level file is incorrect format!");
+                level.successfullyLoaded = false;
+                levelFile.Close();
+                return;
+            } 
+            catch (Exception)
             {
                 PopupWindow popup = new(500, 20, "Possibly corrupt level file!");
                 popup.CenterWindow();
@@ -174,6 +197,12 @@ namespace Game1 {
         public void ExportToFile(string levelFileName)
         {
             BinaryWriter levelWriter = new(File.Open(levelFileName, FileMode.Create));
+
+            levelWriter.Write((byte)CorrectHeader.Length);
+            foreach (char c in CorrectHeader)
+            {
+                levelWriter.Write(c);
+            }
 
             foreach (Object obj in levelObjects)
             {
