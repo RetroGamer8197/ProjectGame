@@ -49,6 +49,9 @@ namespace Game1
 
             weapons = [ new Weapon(10, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun),
                             new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG)];
+
+            CollectAmmo(20, Item.ItemsEnum.SmallAmmo);
+            weapons[0].Reload();
         }
 
         public void Damage(float damageIn)
@@ -312,7 +315,7 @@ namespace Game1
 
         public string GetCurrentWeaponUsageString()
         {
-            return weapons[weaponIndex].currentMagUsage + "/" + weapons[weaponIndex].GetAvailableAmmo();
+            return weapons[weaponIndex].GetCurrentMagUsage() + "/" + weapons[weaponIndex].GetAvailableAmmo();
         }
 
         public bool CollectAmmo(int quantity, Item.ItemsEnum ammoType)
@@ -460,15 +463,13 @@ namespace Game1
 
     public class Weapon
     {
-        float attackDamage;
-        public readonly int magSize;
-        public int currentMagUsage;
+        private float attackDamage;
+        private readonly int magSize;
+        private int currentMagUsage;
         private int availableAmmo;
-        public int UITextureIndex;
-        public readonly float reloadTime;
-        public readonly float shotTime;
-        public float reloadTimer, shotTimer;
-        public bool reloading;
+        private readonly float reloadTime;
+        private readonly float shotTime;
+        private float reloadTimer, shotTimer;
 
         public enum WeaponTypes
         {
@@ -482,12 +483,11 @@ namespace Game1
             attackDamage = _attackDamage;
             magSize = _magSize;
             weaponType = _weaponType;
-            availableAmmo = _magSize;
+            availableAmmo = 0;
             reloadTime = _reloadTime;
             shotTime = _shotTime;
             reloadTimer = -1f;
             shotTimer = -1f;
-            reloading = false;
             Reload();
         }
 
@@ -522,6 +522,11 @@ namespace Game1
             }
         }
 
+        public int GetCurrentMagUsage()
+        {
+            return currentMagUsage;
+        }
+
         public void Reload()
         {
             int increasedAmmo = 0;
@@ -534,6 +539,12 @@ namespace Game1
                 
             }
             reloadTimer = reloadTime * ((float)increasedAmmo / magSize);
+        }
+
+        public void FastReload()
+        {
+            Reload();
+            reloadTimer = -1f;
         }
 
         public void TimerTick(float deltaTime)

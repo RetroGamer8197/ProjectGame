@@ -21,7 +21,7 @@ namespace Game1
         private Queue<string> LevelFileNames = [];
         private string currentLevel = "";
         private bool gameReset = true;
-        private bool FileLoadingEnabled = true;
+        private bool FileLoadingEnabled = false;
         
 
         private Player player;

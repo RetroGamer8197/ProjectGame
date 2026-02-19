@@ -65,11 +65,11 @@ public class Entity : Object
 
     public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, int projectileTextureIndex, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
     {
-        float health = maxHealth;
+        protected float health = maxHealth;
         public float maxHealth = maxHealth;
-        readonly float startingActionTimer = new Random().Next(3, 7);
-        float actionTimer = 5.0f;
-        float animationTimer = 0.0f;
+        private readonly float startingActionTimer = new Random().Next(3, 7);
+        protected float actionTimer = 5.0f;
+        protected float animationTimer = 0.0f;
         protected int animationFrame = 0;
         public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
         {
