@@ -82,7 +82,7 @@ namespace Game1
                 currentFileName = "Textures/hudatlas.png";
                 hudAtlas = new("Textures/hudatlas.png", TextureUnit.Texture1, false);
 
-                currentFileName = "Textures/entityAtlas.png";
+                currentFileName = "Textures/entityatlas.png";
                 entityAtlas = new("Textures/entityatlas.png", TextureUnit.Texture2, false);
 
                 currentFileName = "Textures/mainmenu.png";
@@ -91,13 +91,16 @@ namespace Game1
                 currentFileName = "Textures/font.png";
                 font = new("Textures/font.png", TextureUnit.Texture4, true);
 
-                currentFileName = "Textures/enemyAtlas.png";
-                enemyAtlas = new("Textures/enemyAtlas.png", TextureUnit.Texture5, false);
+                currentFileName = "Textures/enemyatlas.png";
+                enemyAtlas = new("Textures/enemyatlas.png", TextureUnit.Texture5, false);
             }
             catch (FileNotFoundException)
             {
                 PopupWindow popup = new(500, 20, $"Missing texture files: {currentFileName}");
-                popup.CenterWindow();
+                if (!OperatingSystem.IsLinux())
+                {
+                    popup.CenterWindow();
+                }
                 popup.Run();
                 Console.WriteLine("Missing texture file(s):");
                 Console.WriteLine("\t" + currentFileName);
@@ -151,17 +154,13 @@ namespace Game1
             // CALCULATE MATRICES
             Matrix4 model = Matrix4.CreateRotationX(player.moveRotation.X);
 
-            // by treating the rotations as euler angles and keeping them separate in the code, I can move the player by rotating only around the Y axis, while being able to look up and down as well 
-            // as around the Y axis. Treating them as euler angles also means I can look around the 'pitch' axis without having to calculate this in the player movement code
-            //Vector3 front = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(player.upRotation + player.moveRotation)) * new Vector3(0.0f, 0.0f, -1.0f);
-
+            // rotations need to be computed in the correct order, to apply the Euler angles correctly
             Vector3 front = Matrix3.CreateRotationY(player.moveRotation.Y) * Matrix3.CreateRotationX(player.upRotation.X) * new Vector3(0.0f, 0.0f, -1.0f);
 
-            //Matrix4 view = Matrix4.LookAt(player.Position + (Vector3.UnitY * player.Scale.Y / 2), player.Position + (Vector3.UnitY * player.Scale.Y / 2) + (front.X, front.Y, front.Z), (0, 1, 0));
+            // Generates the rotations and translations
             Matrix4 view = CustomMatrix4.GenerateViewMatrix(player.Position + (Vector3.UnitY * player.Scale.Y / 2), front, new(0,1,0));
 
-            //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)(Math.PI / 3), WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100.0f);
-
+            // This matrix changes the size of objects and their translations to correct for perspective projection
             Matrix4 projection = CustomMatrix4.MakeFrustum((float)Math.PI / 2f, WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 100f);
 
             // RENDER STATIC GEOMETRY
@@ -206,8 +205,13 @@ namespace Game1
 
         private void RenderDataWithTransforms(float[] data, Matrix4 model, Matrix4 view, Matrix4 projection)
         {
+            // Push all the values in the data array to the GPU vertex buffer
             GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, BufferUsageHint.StreamDraw);
+
+            // Apply all shader functions to the vertices
             levelShader.Use(model, view, projection);
+
+            // Instruct the GPU to draw triangles from the vertices
             GL.DrawArrays(PrimitiveType.Triangles, 0, data.Length / 6);
         }
 

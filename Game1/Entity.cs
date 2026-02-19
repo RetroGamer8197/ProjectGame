@@ -137,7 +137,7 @@ public class Entity : Object
             if (canSeePlayer) // directionVector.Length > 0.1f || 
             {
                 animationTimer += deltaTime;
-                if (animationTimer > 0.25f)
+                if (animationTimer > 0.5f)
                 {
                     animationFrame += 1;
                     if (animationFrame > 1)

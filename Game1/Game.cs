@@ -52,7 +52,10 @@ namespace Game1
             if (!rendererInitSuccess)
             {
                 PopupWindow popup = new(400, 20, "Failure to initialise the renderer");
-                popup.CenterWindow();
+                if (!OperatingSystem.IsLinux())
+                {
+                    popup.CenterWindow();
+                }
                 popup.Run();
                 Console.WriteLine("Failure to initialise the renderer");
                 Close();
