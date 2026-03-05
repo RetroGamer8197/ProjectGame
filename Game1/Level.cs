@@ -93,10 +93,7 @@ namespace Game1 {
             }
             catch (FileNotFoundException)
             {
-                PopupWindow popup = new(500, 20, $"Missing file: {fileLocation}");
-                popup.CenterWindow();
-                popup.Run();
-                Console.WriteLine($"Missing file: {fileLocation}");
+                ErrorReporter.Report($"Missing file: {fileLocation}");
                 level.successfullyLoaded = false;
                 return;
             }
@@ -172,20 +169,14 @@ namespace Game1 {
             }
             catch (FormatException)
             {
-                PopupWindow popup = new(500, 20, "Level file is incorrect format!");
-                popup.CenterWindow();
-                popup.Run();
-                Console.WriteLine("Level file is incorrect format!");
+                ErrorReporter.Report("Level file is incorrect format!");
                 level.successfullyLoaded = false;
                 levelFile.Close();
                 return;
             } 
             catch (Exception)
             {
-                PopupWindow popup = new(500, 20, "Possibly corrupt level file!");
-                popup.CenterWindow();
-                popup.Run();
-                Console.WriteLine("Possibly corrupt level file!");
+                ErrorReporter.Report("Possibly corrupt level file!");
                 level.successfullyLoaded = false;
                 levelFile.Close();
                 return;

@@ -18,8 +18,8 @@ namespace Game1
         public int weaponIndex = 0;
         private float floatTime = 0f;
 
-        Weapon[] weapons = [new Weapon(10, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun),
-                            new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG)];
+        Weapon[] weapons = [new Weapon(15, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol, 11),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun, 7),
+                            new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle, 11),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG, 7)];
 
         public Player(Vector3 positionIn, Vector3 scaleIn, Vector3 moveRotationIn, float healthIn)
         {
@@ -31,10 +31,13 @@ namespace Game1
             Health = healthIn;
             Armor = 0;
             upRotation = new(0);
+
+            LevelReset();
         }
 
         public void NewLevel()
         {
+            // return the player to be ready for a new level
             Position = (0, 0, 0);
             upRotation = new(0);
             moveRotation = (0, (float)Math.PI, 0);
@@ -43,15 +46,16 @@ namespace Game1
 
         public void LevelReset()
         {
+            // initialise the player to their original state
             NewLevel();
             Health = 100;
             Armor = 0;
 
-            weapons = [ new Weapon(10, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun),
-                            new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG)];
+            weapons = [new Weapon(15, 20, 1f, 0.1f, Weapon.WeaponTypes.Pistol, 11),  new Weapon(50, 8, 3f, 0.3f, Weapon.WeaponTypes.Shotgun, 7),
+                            new Weapon(30, 30, 2f, 0.15f, Weapon.WeaponTypes.Rifle, 11),   new Weapon(100, 3, 5f, 1f, Weapon.WeaponTypes.RPG, 7)];
 
             CollectAmmo(20, Item.ItemsEnum.SmallAmmo);
-            weapons[0].Reload();
+            weapons[0].FastReload();
         }
 
         public void Damage(float damageIn)
@@ -64,15 +68,7 @@ namespace Game1
                 InvincibilityTimer = 0.5f;
             }
         }
-        /*
-
-
-
-            NEED TO UPDATE
-
-
-
-        */
+        
         public void Input_Tick(Game game, KeyboardState keyboardState, MouseState mouseState, ref CursorState cursorState, ref Level levelStore, float deltaTime, ref Renderer renderer, ref HUD HUD_Object, ref Game.GameState gameState)
         {
             Vector3 tempZ = new(0), tempX = new(0), tempY = new(0);
@@ -88,7 +84,7 @@ namespace Game1
 
             // very long delta times, such as slow frames or debugging causes objects to fly out of the level so clamping the delta time
             // means this won't happen
-            deltaTime = Math.Clamp(deltaTime, 0.0f, 0.1f);
+            deltaTime = Math.Clamp(deltaTime, 0.0f, 0.05f);
             
             if (keyboardState.IsKeyPressed(Keys.Escape))
             {
@@ -134,6 +130,7 @@ namespace Game1
                 upRotation.X -= (float)(Math.PI / 2) * deltaTime;
             }
 
+            // mouse cursor state handling
             if (keyboardState.IsKeyPressed(Keys.Backspace))
             {
                 if (cursorState == CursorState.Normal)
@@ -146,35 +143,39 @@ namespace Game1
                 }
             }
 
+            // reloading
             if (keyboardState.IsKeyPressed(Keys.R))
             {
                 weapons[weaponIndex].Reload();
             }
 
+            // mouse look
             if (mouseState.Delta != (0, 0) && cursorState == CursorState.Grabbed)
             {
                 moveRotation.Y += (float)(mouseState.Delta.X * Math.PI / game.WINDOW_WIDTH / 1000);
                 upRotation.X += (float)(mouseState.Delta.Y * Math.PI / game.WINDOW_WIDTH / 1000);
             }
 
+            // shooting
             if ((mouseState.IsButtonPressed(MouseButton.Button1) && cursorState == CursorState.Grabbed) || keyboardState.IsKeyPressed(Keys.LeftAlt))
             {
-                RaycastToObject(ref levelStore, ref renderer, false, ref HUD_Object);
+                /*RaycastToObject(ref levelStore, ref renderer, false, ref HUD_Object);*/
+                float damage = weapons[weaponIndex].Shoot(ref renderer);
+                if (damage > 0)
+                {
+                    Vector3 front = Matrix3.CreateRotationY(moveRotation.Y) * Matrix3.CreateRotationX(upRotation.X) * new Vector3(0.0f, 0.0f, -1.0f);
+                    levelStore.temporaryObjects.Add(new AntiEnemyProjectile(Position + (0.4f * Vector3.UnitY * Scale.Y), (0.1f, 0.1f), weapons[weaponIndex].projectileTextureIndex, (int)damage, front, 9f));
+                }
             }
 
+            // interacting with objects
             if (keyboardState.IsKeyPressed(Keys.E))
             {
-                RaycastToObject(ref levelStore, ref renderer, true, ref HUD_Object);
+                RaycastToObject(ref levelStore, ref renderer, ref HUD_Object);
             }
-
-            if (upRotation.X < -Math.PI * 0.499f)
-            {
-                upRotation.X = -(float)(Math.PI * 0.499f);
-            }
-            else if (upRotation.X > Math.PI * 0.499f)
-            {
-                upRotation.X = (float)(Math.PI * 0.499f);
-            }
+            
+            // clamp vertical rotation
+            upRotation.X = Math.Clamp(upRotation.X, -(float)(Math.PI * 0.499f), (float)(Math.PI * 0.499f));
 
             Vector3 front3 = Matrix3.CreateRotationY(moveRotation.Y) * new Vector3(0f, 0f, -1f);
 
@@ -208,15 +209,6 @@ namespace Game1
             }
             
         }
-        /*
-
-
-
-            NEED TO UPDATE
-
-
-
-        */
         
         private void NewCollision(Vector3 tempX, Vector3 tempY, Vector3 tempZ, ref Level levelStore, float deltaTime, ref bool jumping, ref KeyboardState keyboardState)
         {
@@ -250,12 +242,14 @@ namespace Game1
 
             }
 
+            // this means the player is touching the ground and therefore shouldn't be moving vertically
             if (grounded && !jumping)
             {
                 yVelocity = 0;
                 tempY.Y = 0f;
             } else if(collidedUpY)
             {
+                // if the player is colliding vertically and is not grounded, it means they have hit the ceiling 
                 if (floatTime > 0.2f)
                 {
                     yVelocity = 0;
@@ -272,17 +266,19 @@ namespace Game1
             }
             else if (jumping && grounded)
             {
+                // in this case, the player must be starting their jump
                 Position.Y += yVelocity * deltaTime;
             }
             else
             {
+                // default state is to fall
                 yVelocity -= 9f * deltaTime;
                 Position.Y += yVelocity * deltaTime;
             }
 
             if (!collidedXZ && !collidedX && !collidedZ)
             {
-
+                // if there are no collisions, the player's movement doesn't need to be changed
             }
             else if (!collidedZ && collidedX)
             {
@@ -296,6 +292,7 @@ namespace Game1
             }
             else
             {
+                // if colliding in both directions, do not move the player
                 tempX = (0, 0, 0);
                 tempZ = (0, 0, 0);
             }
@@ -338,9 +335,8 @@ namespace Game1
             return false;
         }
 
-        public void RaycastToObject(ref Level level, ref Renderer renderer, bool interactType, ref HUD HUD_Object)
+        public void RaycastToObject(ref Level level, ref Renderer renderer, ref HUD HUD_Object)
         {
-            // interact type is true if it is an interaction and false if it is an attack
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
             float stepScale = 1 / 100f;
             bool validRaycast = false;
@@ -421,30 +417,18 @@ namespace Game1
                 if (closestObject != -1)
                 {
                     validRaycast = true;
-                    if (interactType)
-                    {
-                        Player ptemp = this;
-                        level.levelObjects[closestObject].HandleInteract(ref Inventory, ref HUD_Object);
-                    }
-                    else
-                    {
-                        level.levelObjects[closestObject].HandleClickedOn(weapons[weaponIndex].Shoot(ref renderer));
-                    }
+                    level.levelObjects[closestObject].HandleInteract(ref Inventory, ref HUD_Object);
                 }
 
 
                 length = (float.Min(float.Min(tMaxX, tMaxY), tMaxZ) * direction).Length;
 
             } while (!validRaycast && length <= 10);
-            if (!validRaycast)
-            {
-                weapons[weaponIndex].Shoot(ref renderer);
-            }
         }
 
         public static Vector3 FloorPosition(Vector3 position, float scale)
         {
-
+            // Finds the nearest position to a given scale
             position /= scale;
 
             if (position.X < 0)
@@ -465,11 +449,13 @@ namespace Game1
     {
         private float attackDamage;
         private readonly int magSize;
+        public readonly int projectileTextureIndex;
         private int currentMagUsage;
         private int availableAmmo;
         private readonly float reloadTime;
         private readonly float shotTime;
         private float reloadTimer, shotTimer;
+        private bool reloading;
 
         public enum WeaponTypes
         {
@@ -478,7 +464,7 @@ namespace Game1
 
         public WeaponTypes weaponType;
 
-        public Weapon(float _attackDamage, int _magSize, float _reloadTime, float _shotTime, WeaponTypes _weaponType)
+        public Weapon(float _attackDamage, int _magSize, float _reloadTime, float _shotTime, WeaponTypes _weaponType, int _projectileTexture)
         {
             attackDamage = _attackDamage;
             magSize = _magSize;
@@ -486,6 +472,7 @@ namespace Game1
             availableAmmo = 0;
             reloadTime = _reloadTime;
             shotTime = _shotTime;
+            projectileTextureIndex = _projectileTexture;
             reloadTimer = -1f;
             shotTimer = -1f;
             Reload();
@@ -538,7 +525,11 @@ namespace Game1
                 shotTimer = -1f;
                 
             }
-            reloadTimer = reloadTime * ((float)increasedAmmo / magSize);
+            if (!reloading)
+            {
+                reloadTimer = reloadTime * ((float)increasedAmmo / magSize);
+                reloading = true;
+            }
         }
 
         public void FastReload()
@@ -552,7 +543,11 @@ namespace Game1
             if (reloadTimer > 0)
             {
                 reloadTimer -= deltaTime;
+            } else
+            {
+                reloading = false;
             }
+
             if (shotTimer > 0)
             {
                 shotTimer -= deltaTime;

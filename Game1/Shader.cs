@@ -87,7 +87,7 @@ namespace Game1
 
             if (disposedValue == false)
             {
-                Console.WriteLine("GPU Resource leak: Did you forget to call Dispose()");
+                //Console.WriteLine("GPU Resource leak: Did you forget to call Dispose()");
             }
 
         }

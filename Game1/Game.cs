@@ -15,13 +15,15 @@ namespace Game1
         }
 
 
-        public const float speed = 2;
+        public const float speed = 2f;
         public float WINDOW_WIDTH = 1.6f / 0.9f, WINDOW_HEIGHT = 1.0f;
         private string[] InitialLevelNames = [];
         private Queue<string> LevelFileNames = [];
         private string currentLevel = "";
         private bool gameReset = true;
-        private bool FileLoadingEnabled = false;
+        
+        private readonly bool FileLoadingEnabled = false; // used for debugging and building levels
+        private readonly bool FPS_counter_enabled = true; // controls whether the FPS counter element of the HUD is shown
         
 
         private Player player;
@@ -51,13 +53,7 @@ namespace Game1
             renderer = new(out bool rendererInitSuccess);
             if (!rendererInitSuccess)
             {
-                PopupWindow popup = new(400, 20, "Failure to initialise the renderer");
-                if (!OperatingSystem.IsLinux())
-                {
-                    popup.CenterWindow();
-                }
-                popup.Run();
-                Console.WriteLine("Failure to initialise the renderer");
+                ErrorReporter.Report("Failure to initialise the renderer");
                 Close();
             }
 
@@ -88,6 +84,17 @@ namespace Game1
             HUD_Object.AddHUD_Element("greenkeycard", new ItemIcon((-0.6f, 0.9f), (0.1f, 0.1f), 6, new HeldItem() { color = HeldItem.Colors.Green, itemType = HeldItem.ItemTypes.Keycard }));
             HUD_Object.AddHUD_Element("yellowkeycard", new ItemIcon((-0.45f, 0.9f), (0.1f, 0.1f), 7, new HeldItem() { color = HeldItem.Colors.Yellow, itemType = HeldItem.ItemTypes.Keycard }));
 
+            HUD_Object.QueueMessage("WASD to move");
+            HUD_Object.QueueMessage("Space to jump");
+            HUD_Object.QueueMessage("E to interact with a button");
+            HUD_Object.QueueMessage("Click to shoot");
+            HUD_Object.QueueMessage("Backspace to capture mouse");
+            
+            if (FPS_counter_enabled) {
+                HUD_Object.AddHUD_Element("FPS_counter", new TextElement((0.7f, 0.9f), 16f / 720f, "FPS: 0.0", false));
+            }
+            
+
             // --- Pause Menu ---
             PauseMenu = new();
 
@@ -111,22 +118,19 @@ namespace Game1
                     }
                     break;
                 case GameState.Pause:
-                    Pause_OnFrameUpdate();
+                    Pause_OnUpdateFrame();
                     break;
                 case GameState.Level:
                     Level_OnUpdateFrame((float)e.Time);
                     break;
                 case GameState.Loading:
-                    Loading_OnFrameUpdate();
+                    Loading_OnUpdateFrame();
                     break;
                 case GameState.Reset:
-                    Reset_OnFrameUpdate();
+                    Reset_OnUpdateFrame();
                     break;
                 case GameState.Error:
-                    PopupWindow popup = new(400, 20, "An unknown error has occurred");
-                    popup.CenterWindow();
-                    popup.Run();
-                    Console.WriteLine("An unknown error has occurred");
+                    ErrorReporter.Report("An unknown error has occurred");
                     Close();
                     break;
             }
@@ -158,35 +162,31 @@ namespace Game1
 
             string[] levelNamesInitial = [];
             List<string> LevelNamesQueue = [];
+
+            // attempt to open LevelNames.txt
             try
             {
                 StreamReader levelNames = new(File.Open("Levels/levelNames.txt", FileMode.Open));
-                    string? fileHeader = levelNames.ReadLine();
-                    if (fileHeader != correctHeader)
+                string? fileHeader = levelNames.ReadLine();
+                if (fileHeader != correctHeader)
+                {
+                    // if the first line is not equal to the string "ProjectGame 1.1 | Files 2.0", the file is in the wrong format
+                    ErrorReporter.Report("Level names is incorrect format");
+                    Close();
+                }
+                while (!levelNames.EndOfStream)
+                {
+                    string? currentFileName = levelNames.ReadLine();
+                    if (currentFileName != null)
                     {
-                        // if the first line is not equal to the string "ProjectGame 1.1 | Files 2.0", the file is in the wrong format
-                        PopupWindow popup = new(400, 20, "Level names file is incorrect format");
-                        popup.CenterWindow();
-                        popup.Run();
-                        Console.WriteLine("Level names file is incorrect format");
-                        Close();
+                        LevelNamesQueue.Add(currentFileName);
                     }
-                    while (!levelNames.EndOfStream)
-                    {
-                        string? currentFileName = levelNames.ReadLine();
-                        if (currentFileName != null)
-                        {
-                            LevelNamesQueue.Add(currentFileName);
-                        }
-                    }
-                    levelNamesInitial = [.. LevelNamesQueue];
-                    levelNames.Close();
+                }
+                levelNamesInitial = [.. LevelNamesQueue];
+                levelNames.Close();
             } catch (FileNotFoundException)
             {
-                PopupWindow popup = new(500, 20, "Level names file is missing! Game load cannot continue");
-                popup.CenterWindow();
-                popup.Run();
-                Console.WriteLine("Level names file is missing! Game load cannot continue");
+                ErrorReporter.Report("Level names file is missing! Game load cannot continue");
                 Close();
             }
 
@@ -201,6 +201,11 @@ namespace Game1
             {
                 gameState = GameState.Loading;
                 return;
+            }
+
+            if (FPS_counter_enabled)
+            {
+                HUD_Object.HUD_Elements["FPS_counter"].QueueValue("FPS: " + MathF.Round(1 /deltaTime, 2).ToString());
             }
 
             for (int i = 0; i < levelStore.levelObjects.Count; i++)
@@ -257,11 +262,11 @@ namespace Game1
 
         }
 
-        private void Reset_OnFrameUpdate()
+        private void Reset_OnUpdateFrame()
         {
             if (currentLevel == "" || gameReset)
             {
-                Loading_OnFrameUpdate();
+                Loading_OnUpdateFrame();
                 gameReset = false;
             }
             
@@ -288,21 +293,18 @@ namespace Game1
                 player.LevelReset();
             }
         }
-
-        private void Loading_OnFrameUpdate()
+        private void Loading_OnUpdateFrame()
         {
             if (FileLoadingEnabled)
             {
                 if (LevelFileNames.Count > 0)
                 {
+                    // Load the next level listed in LevelNames.txt 
                     currentLevel = LevelFileNames.Dequeue();
                     Level.ImportLevelFromFile(currentLevel, out levelStore);
                     if (!levelStore.successfullyLoaded)
                     {
-                        PopupWindow popup = new(500, 20, "Error loading level!");
-                        popup.CenterWindow();
-                        popup.Run();
-                        Console.WriteLine("Error loading level!");
+                        ErrorReporter.Report($"Error loading level! File: {currentLevel}");
                         gameState = GameState.Error;
                     } else
                     {
@@ -312,6 +314,7 @@ namespace Game1
                     }
                 } else
                 {
+                    // Reset the level file names queue to the start of the game and return to the menu
                     LevelFileNames = [];
                     foreach (string levelName in InitialLevelNames)
                     {
@@ -321,8 +324,13 @@ namespace Game1
                 }
             } else
             {
+                // used for building levels and debugging
                 levelStore = LevelTemp.QuakeReturn();
                 levelStore.ExportToFile("Levels/quake.lvl");
+
+                /*levelStore = LevelTemp.Level1Return();
+                levelStore.ExportToFile("Levels/level1.lvl");*/
+
                 HUD_Object.LevelReset();
                 player.NewLevel();
                 gameState = GameState.Level;
@@ -330,7 +338,7 @@ namespace Game1
             
         }
 
-        private void Pause_OnFrameUpdate()
+        private void Pause_OnUpdateFrame()
         {
             if (CursorState == CursorState.Grabbed)
             {

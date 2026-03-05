@@ -225,15 +225,10 @@ namespace Game1
         }
     }
 
-    public class ItemIcon : HUD_Element
+    public class ItemIcon(Vector2 position, Vector2 scale, int textureIndexIn, HeldItem checkItemIn) : HUD_Element(position, scale, true, HUD_ElementType.Icon, false)
     {
-        readonly int textureIndex;
-        readonly HeldItem checkItem;
-        public ItemIcon(Vector2 position, Vector2 scale, int textureIndexIn, HeldItem checkItemIn) : base(position, scale, true, HUD_ElementType.Icon, false)
-        {
-            textureIndex = textureIndexIn;
-            checkItem = checkItemIn;
-        }
+        readonly int textureIndex = textureIndexIn;
+        readonly HeldItem checkItem = checkItemIn;
 
         public override float[] GenerateGL_Data(float aspectRatio)
         {
@@ -351,6 +346,11 @@ namespace Game1
             }
 
             return [.. vertexData];
+        }
+
+        public override void QueueValue(string input)
+        {
+            text = input;
         }
 
     }

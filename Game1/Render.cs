@@ -36,9 +36,27 @@ namespace Game1
                 return false;
             }
             
+            string currentShader = "";
+            try
+            {
+                currentShader = "Shaders/level.vert";
+                var s = File.Open(currentShader, FileMode.Open);
+                s.Close();
+
+                currentShader = "Shaders/level.frag";
+                s = File.Open(currentShader, FileMode.Open);
+                s.Close();
+            } catch (FileNotFoundException)
+            {
+                ErrorReporter.Report($"Missing shader file: {currentShader}");
+
+                return false;
+            }
+
             levelShader = new("Shaders/level.vert", "Shaders/level.frag", out success);
             if (!success)
             {
+                ErrorReporter.Report("Failure to compile the shader");
                 return false;
             }
             levelShader.Use(Matrix4.Identity, Matrix4.Identity, Matrix4.Identity);
@@ -96,25 +114,16 @@ namespace Game1
             }
             catch (FileNotFoundException)
             {
-                PopupWindow popup = new(500, 20, $"Missing texture files: {currentFileName}");
-                if (!OperatingSystem.IsLinux())
-                {
-                    popup.CenterWindow();
-                }
-                popup.Run();
-                Console.WriteLine("Missing texture file(s):");
-                Console.WriteLine("\t" + currentFileName);
+                ErrorReporter.Report($"Missing texture files: {currentFileName}");
                 success = false;
+            } catch
+            {
+                
             }
         }
 
         public void RenderMainMenu()
         {
-            /*
-            
-                UPGRADE THE MENU TO BE FANCIER
-
-            */
             GL.Disable(EnableCap.DepthTest);
 
             mainMenuImage.Use(TextureUnit.Texture3);
@@ -133,12 +142,6 @@ namespace Game1
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             RenderDataWithTransforms(MainMenu, Matrix4.Identity,Matrix4.Identity,Matrix4.Identity);
-
-            /*
-            
-                UPGRADE THE MENU TO BE FANCIER
-
-            */
         }
 
         public void RenderLevelFrame(Player player, ref Level levelStore, HUD HUD_Object, float WINDOW_WIDTH, float WINDOW_HEIGHT)

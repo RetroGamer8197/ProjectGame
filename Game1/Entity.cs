@@ -3,6 +3,7 @@ using OpenTK.Graphics.OpenGL4;
 using System.Reflection.Metadata.Ecma335;
 using System.Diagnostics.CodeAnalysis;
 using System.Data.Common;
+using System.ComponentModel;
 
 namespace Game1
 {
@@ -63,11 +64,12 @@ public class Entity : Object
         }
     }
 
-    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, int projectileTextureIndex, bool pathfindingIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
+    public class Enemy(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, float maxHealth, int projectileTextureIndex, bool pathfindingIn, float sightRangeIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Enemy)
     {
         protected float health = maxHealth;
+        private float sightRange = sightRangeIn;
         public float maxHealth = maxHealth;
-        private readonly float startingActionTimer = new Random().Next(3, 7);
+        private readonly float startingActionTimer = new Random().Next(2, 5);
         protected float actionTimer = 5.0f;
         protected float animationTimer = 0.0f;
         protected int animationFrame = 0;
@@ -128,7 +130,7 @@ public class Entity : Object
                 if (randomNum.Next(0, 300) > 250)
                 {
                     actionTimer = startingActionTimer;
-                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, playerPosition - Position, 3.0f));
+                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, playerPosition - Position, 268f / MathF.Pow(healthChange * healthChange, 2f / 3f)));
                 }
             } else
             {
@@ -152,7 +154,7 @@ public class Entity : Object
         public static void LoadFromFile(out Enemy entity, ref BinaryReader levelFile)
         {
             entity = new Enemy(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
-                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadBoolean());
+                                    (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadBoolean(), levelFile.ReadSingle());
         }
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
@@ -167,6 +169,7 @@ public class Entity : Object
             levelWriter.Write(maxHealth);
             levelWriter.Write(projectileTextureIndex);
             levelWriter.Write(pathfinding);
+            levelWriter.Write(sightRange);
         }
 
         public override void HandleClickedOn(float attackDamage)
@@ -181,19 +184,27 @@ public class Entity : Object
         }
 
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
-        {
-            float distanceAllowedXZ = new Vector2(scale.X / 2, scale.X / 2).LengthSquared;
-            float distanceAllowedY = scale.Y;
-            Vector3 VectorDistanceFrom = Position - input;
-            distanceFrom = VectorDistanceFrom.LengthSquared;
-            if (new Vector2(VectorDistanceFrom.X, VectorDistanceFrom.Z).LengthSquared < distanceAllowedXZ && VectorDistanceFrom.Y < distanceAllowedY)
+        {  
+            if (alive)
             {
-                return true;
-            }
-            else
+                float distanceAllowedXZ = new Vector2(scale.X / 2, scale.X / 2).LengthSquared;
+                float distanceAllowedY = scale.Y;
+                Vector3 VectorDistanceFrom = Position - input;
+                distanceFrom = VectorDistanceFrom.LengthSquared;
+                if (new Vector2(VectorDistanceFrom.X, VectorDistanceFrom.Z).LengthSquared < distanceAllowedXZ && VectorDistanceFrom.Y < distanceAllowedY)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            } else
             {
+                distanceFrom = float.MaxValue;
                 return false;
             }
+            
         }
 
         public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
@@ -208,7 +219,7 @@ public class Entity : Object
             float modulus = 1;
 
             float maxDistance = (RealPosition - playerPosition).Length;
-            if (maxDistance > 5)
+            if (maxDistance > sightRange)
             {
                 return false;
             }
@@ -293,7 +304,7 @@ public class Entity : Object
         private float speed;
         Vector3 directionToTravel, initialPosition;
 
-        public Projectile(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, Vector3 _directionToTravel, float speedIn):  base(position, scaleIn, textureIndexIn, healthChangeIn, 1, -1, false)
+        public Projectile(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, Vector3 _directionToTravel, float speedIn):  base(position, scaleIn, textureIndexIn, healthChangeIn, 1, -1, false, -1f)
         {
             speed = speedIn;
             directionToTravel = _directionToTravel;
@@ -338,7 +349,66 @@ public class Entity : Object
         }
     }
 
-    public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn, Item.ItemsEnum returnItemIn) : Entity(position, scaleIn, textureIndexIn, healthChangeIn, pathfindingIn, EntityType.Item)
+    public class AntiEnemyProjectile : Projectile
+    {
+        private float speed;
+        Vector3 directionToTravel, initialPosition;
+
+        public AntiEnemyProjectile(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, Vector3 _directionToTravel, float speedIn):  base(position, scaleIn, textureIndexIn, healthChangeIn, _directionToTravel, speedIn)
+        {
+            speed = speedIn;
+            directionToTravel = _directionToTravel;
+            initialPosition = position;
+
+        }
+
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        {
+            if (alive)
+            {
+                Position += Vector3.Normalize(directionToTravel) * deltaTime * speed;
+
+                foreach (Object O in level.levelObjects)
+                {
+                    if (O.objectType != ObjectType.Entity)
+                    {
+                        if (O.CheckCollision(Position, (scale.X, scale.Y, scale.X)))
+                        {
+                            alive = false;
+                        }
+                    } else {
+                        Entity EntityO = (Entity)O;
+                        if (EntityO.entityType == EntityType.Enemy)
+                        {
+                            if (EntityO.CheckClickedCollision(Position, scale.X / 2f, out float distanceFrom))
+                            {
+                                O.HandleClickedOn(healthChange);
+                                alive = false;
+                            }
+                        }
+                    }
+                    
+                }
+
+                if ((initialPosition - Position).Length > 40)
+                {
+                    alive = false;
+                }
+
+                /*if ((Position - playerPosition).LengthSquared < 0.1f)
+                {
+                    alive = false;
+                    e.Damage(healthChange);
+                }
+                if ((Position - initialPosition).Length > 50f)
+                {
+                    alive = false;
+                }*/
+            }
+        }
+    }
+
+    public class Item(Vector3 position, Vector2 scaleIn, int textureIndexIn, int changeIn, bool pathfindingIn, Item.ItemsEnum returnItemIn) : Entity(position, scaleIn, textureIndexIn, changeIn, pathfindingIn, EntityType.Item)
     {
         public enum ItemsEnum
         {

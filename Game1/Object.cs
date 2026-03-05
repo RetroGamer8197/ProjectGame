@@ -354,7 +354,6 @@ namespace Game1
             string[] colors = ["red", "green", "blue", "yellow", "colorless"];
 
             HUD_Object.QueueMessage("You need the " + colors[(int)buttonColor] + " keycard to open this door");
-
         }
     }
 
@@ -552,10 +551,12 @@ namespace Game1
             {
                 if (o.objectType == ObjectType.Button)
                 {
+                    // This cast is necessary as the Button-specific properties cannot be accessed otherwise
                     Button tempButton = (Button)o;
 
                     if (tempButton.buttonColor == ActivatorColor)
                     {
+                        // The XOR here means the default state can invert the current state of the button
                         currentState = defaultState ^ tempButton.active;
                     }
                 }

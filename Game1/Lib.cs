@@ -100,5 +100,21 @@ namespace Game1
         }
     }
 
+    public abstract class ErrorReporter()
+    {
+        
+        public static void Report(string errorMessage)
+        {
+            PopupWindow popup = new(errorMessage.Length * 15, 20, errorMessage);
+            if (!OperatingSystem.IsLinux())
+            {
+                popup.CenterWindow();
+            }
+            popup.Run();
+            Console.WriteLine(errorMessage);
+        }
+
+    }
+
 
 }
