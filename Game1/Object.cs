@@ -8,7 +8,7 @@ namespace Game1
         
         public enum ObjectType
         {
-            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4, Button = 5, Door = 6, EndButton = 7
+            None = 0, Triangle = 1, Plane = 2, Entity = 3, Cube = 4, Button = 5, Door = 6, EndButton = 7, EndCondition = 8
         }
         public ObjectType objectType;
         
@@ -17,7 +17,7 @@ namespace Game1
             return false;
         }
 
-        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
 
         }
@@ -76,7 +76,6 @@ namespace Game1
         {
             Vector3 v1, v2, v3;
             Vector2 tc1, tc2, tc3;
-            byte textureIndex;
             float directionIndex;
             v1 = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
             v2 = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
@@ -86,7 +85,6 @@ namespace Game1
             tc2 = new(levelReader.ReadSingle(), levelReader.ReadSingle());
             tc3 = new(levelReader.ReadSingle(), levelReader.ReadSingle());
 
-            textureIndex = levelReader.ReadByte();
             directionIndex = levelReader.ReadSingle();
 
             triangleOutput = new(v1, v2, v3, [tc1, tc2, tc3], directionIndex);
@@ -105,7 +103,6 @@ namespace Game1
                 levelWriter.Write(tc.Y);
             }
 
-            levelWriter.Write((byte)0);
             levelWriter.Write(directionIndex);        
         }
 
@@ -354,6 +351,45 @@ namespace Game1
             string[] colors = ["red", "green", "blue", "yellow", "colorless"];
 
             HUD_Object.QueueMessage("You need the " + colors[(int)buttonColor] + " keycard to open this door");
+        }
+    }
+
+    public class LevelEndCondition : Object
+    {
+        public LevelEndCondition() : base()
+        {
+            objectType = ObjectType.EndCondition;
+        }
+
+        public static void LoadFromFile(out LevelEndCondition levelEndCondition, ref BinaryReader levelReader)
+        {
+            levelEndCondition = new();
+        }
+
+        public override void ExportToFile(ref BinaryWriter levelWriter)
+        {
+            
+        }
+
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        {
+            bool noneAlive = true;
+            foreach (Object O in level.levelObjects)
+            {
+                if (O.objectType == ObjectType.Entity)
+                {
+                    if (((Entity)O).entityType == Entity.EntityType.Enemy && ((Entity)O).getAliveState())
+                    {
+                        noneAlive = false;
+                    }
+                }
+            }
+
+            if (noneAlive)
+            {
+                HUD_Object.QueueMessage("Level complete!");
+                HUD_Object.CallNewLevel();
+            }
         }
     }
 

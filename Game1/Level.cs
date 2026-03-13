@@ -160,6 +160,10 @@ namespace Game1 {
                             LevelEndButton.LoadFromFile(out LevelEndButton LE_buttonTemp, ref levelFile);
                             level.levelObjects.Add(LE_buttonTemp);
                             break;
+                        case Object.ObjectType.EndCondition:
+                            LevelEndCondition.LoadFromFile(out LevelEndCondition LE_CondTemp, ref levelFile);
+                            level.levelObjects.Add(LE_CondTemp);
+                            break;
                         case Object.ObjectType.Door:
                             Door.LoadFromFile(out Door doorTemp, ref levelFile);
                             level.levelObjects.Add(doorTemp);

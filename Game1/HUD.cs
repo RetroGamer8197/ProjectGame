@@ -135,11 +135,6 @@ namespace Game1
 
         }
 
-        public virtual void QueueValue(int input)
-        {
-
-        }
-
         public virtual void DecreaseValue(float value)
         {
 

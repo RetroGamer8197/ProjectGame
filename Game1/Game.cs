@@ -22,7 +22,7 @@ namespace Game1
         private string currentLevel = "";
         private bool gameReset = true;
         
-        private readonly bool FileLoadingEnabled = false; // used for debugging and building levels
+        private readonly bool FileLoadingEnabled = true; // used for debugging and building levels
         private readonly bool FPS_counter_enabled = true; // controls whether the FPS counter element of the HUD is shown
         
 
@@ -223,9 +223,9 @@ namespace Game1
             // UPDATE EVERY OBJECT IN THE LEVEL
             foreach (Object levelObject in levelStore.levelObjects)
             {
-                if (levelObject.objectType == Object.ObjectType.Entity)
+                if (levelObject.objectType == Object.ObjectType.Entity || levelObject.objectType == Object.ObjectType.EndCondition)
                 {
-                    levelObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player);
+                    levelObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player, ref HUD_Object);
                 }
             }
 
@@ -235,7 +235,7 @@ namespace Game1
             {
                 if (tempObject.objectType == Object.ObjectType.Entity)
                 {
-                    tempObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player);
+                    tempObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player, ref HUD_Object);
                 }
                 if (!((Entity)tempObject).getAliveState())
                 {
@@ -325,11 +325,11 @@ namespace Game1
             } else
             {
                 // used for building levels and debugging
-                levelStore = LevelTemp.QuakeReturn();
-                levelStore.ExportToFile("Levels/quake.lvl");
+                levelStore = LevelTemp.Level3Return();
+                levelStore.ExportToFile("Levels/boss.lvl");
 
-                /*levelStore = LevelTemp.Level1Return();
-                levelStore.ExportToFile("Levels/level1.lvl");*/
+                /*levelStore = LevelTemp.DemoReturn();
+                levelStore.ExportToFile("Levels/demo.lvl");*/
 
                 HUD_Object.LevelReset();
                 player.NewLevel();

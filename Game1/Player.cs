@@ -164,7 +164,7 @@ namespace Game1
                 if (damage > 0)
                 {
                     Vector3 front = Matrix3.CreateRotationY(moveRotation.Y) * Matrix3.CreateRotationX(upRotation.X) * new Vector3(0.0f, 0.0f, -1.0f);
-                    levelStore.temporaryObjects.Add(new AntiEnemyProjectile(Position + (0.4f * Vector3.UnitY * Scale.Y), (0.1f, 0.1f), weapons[weaponIndex].projectileTextureIndex, (int)damage, front, 9f));
+                    levelStore.temporaryObjects.Add(new AntiEnemyProjectile(Position + (0.4f * Vector3.UnitY * Scale.Y), (0.1f, 0.1f), weapons[weaponIndex].projectileTextureIndex, (int)damage, front, 36f/MathF.Pow(damage,1f/2f)));
                 }
             }
 
@@ -197,6 +197,11 @@ namespace Game1
             if (keyboardState.IsKeyDown(Keys.A))
             {
                 tempX -= Vector3.Normalize(Vector3.Cross(front3, (0, 1, 0))) * Game.speed * deltaTime;
+            }
+
+            if (keyboardState.IsKeyPressed(Keys.Slash))
+            {
+                Console.WriteLine($"{Position.X}, {Position.Y}, {Position.Z}");
             }
 
             tempY.Y = yVelocity * deltaTime;

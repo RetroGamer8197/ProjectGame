@@ -69,11 +69,11 @@ public class Entity : Object
         protected float health = maxHealth;
         private float sightRange = sightRangeIn;
         public float maxHealth = maxHealth;
-        private readonly float startingActionTimer = new Random().Next(2, 5);
-        protected float actionTimer = 5.0f;
-        protected float animationTimer = 0.0f;
-        protected int animationFrame = 0;
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        private readonly float startingActionTimer = new Random().Next(2, 4);
+        protected private float actionTimer = 5.0f;
+        protected private float animationTimer = 0.0f;
+        protected private int animationFrame = 0;
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             if (!alive)
             {
@@ -130,7 +130,7 @@ public class Entity : Object
                 if (randomNum.Next(0, 300) > 250)
                 {
                     actionTimer = startingActionTimer;
-                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, playerPosition - Position, 268f / MathF.Pow(healthChange * healthChange, 2f / 3f)));
+                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, playerPosition - Position, 30f / MathF.Pow(healthChange, 1f/2f)));
                 }
             } else
             {
@@ -322,7 +322,7 @@ public class Entity : Object
             return false;
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             if (alive)
             {
@@ -362,7 +362,7 @@ public class Entity : Object
 
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             if (alive)
             {
@@ -436,7 +436,7 @@ public class Entity : Object
             levelWriter.Write((byte)returnItem);
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player)
+        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             if (!alive)
             {
