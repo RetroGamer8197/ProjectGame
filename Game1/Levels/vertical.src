@@ -1,0 +1,160 @@
+public static Level Vertical_Return()
+{
+    Level levelStore = new();
+
+    levelStore.levelObjects.Add(new Cube((0f,0.5f,-2.0f), 2.0f, 0.5f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-1.5f,-0.25f,-1.5f), 2.0f, 1.0f, 1.0f, 5));
+    levelStore.levelObjects.Add(new Cube((1.5f,-0.25f,-1.5f), 2.0f, 1.0f, 1.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((-1.5f,-0.25f,-3f), 1.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((1.5f,-0.25f,-3f), 1.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((0f,-0.25f,-3.5f), 2.0f, 1.0f, 1.0f, 5));
+
+    levelStore.levelObjects.Add(new Door((0f,-0.25f,-1.5f), 1.0f, 1.0f, 0.5f, 9, HeldItem.Colors.Blue, false));
+
+    levelStore.levelObjects.Add(new LevelEndButton((0f,-0.25f,-2.99f), (0,0,1f), 0.5f, 0.5f, 7, 8, 0.88f));
+
+    levelStore.levelObjects.Add(new Cube((0,-1,-2), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,-1,0), 2.0f, 0.5f, 2.0f, 6));
+
+    levelStore.levelObjects.Add(new Item((-0.5f,-0.5f,-0.5f), (0.25f, 0.25f), 9, 12, false, Item.ItemsEnum.ShellPack));
+    levelStore.levelObjects.Add(new Item((0.5f,-0.5f,-0.5f), (0.25f, 0.25f), 10, 30, false, Item.ItemsEnum.MediumAmmo));
+
+    levelStore.levelObjects.Add(new Cube((0,-1,2), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,-1,4), 2.0f, 0.5f, 2.0f, 6));
+
+    levelStore.levelObjects.Add(new Cube((0,0.875f,0), 2.0f, 0.25f, 2.0f, 3));
+    levelStore.levelObjects.Add(new Cube((0,0.875f,2), 2.0f, 0.25f, 2.0f, 3));
+    levelStore.levelObjects.Add(new Cube((0,0.875f,4), 2.0f, 0.25f, 2.0f, 3));
+
+    levelStore.levelObjects.Add(new Cube((0,-0.25f,6), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((0,0.75f,6), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((0,1.75f,6), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((0,2.75f,6), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((-2,0.75f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,0.75f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,0.75f,0), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,0.75f,0), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((-2,0.25f,4), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,-0.75f,4), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,-0.25f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,-0.25f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,-0.25f,0), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,-0.25f,0), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((2,1.125f,4), 2.0f, 0.25f, 2.0f, 3));
+    levelStore.levelObjects.Add(new Cube((2,1.75f,4), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,2.75f,4), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((2,-0.75f,4), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((2,-0.5f,6), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((2,-0.25f,8), 2.0f, 0.5f, 2.0f,6));
+    levelStore.levelObjects.Add(new Cube((0,0.0f,8), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((-2,0.25f,8), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((-2,0.5f,6), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((-2,0.875f,4), 2.0f, 0.25f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.125f,4), 2.0f, 0.25f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.125f,2), 2.0f, 0.25f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.125f,0), 2.0f, 0.25f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1f,-2), 2.0f, 0.5f, 2.0f, 6));
+
+    Vector3[] pillars =
+    {
+        new(4, 0, 4), new(4, 0, 6), new(4, 0, 8),
+        new(2, 0, 10), new(0, 0, 10), new(-2, 0, 10),
+        new(-4, 0, 4), new(-4, 0, 6), new(-4, 0, 8),
+    };
+
+    foreach (Vector3 pillar in pillars)
+    {
+        levelStore.levelObjects.Add(new Cube((pillar.X,-0.25f,pillar.Z), 2.0f, 1.0f, 2.0f, 5));
+        levelStore.levelObjects.Add(new Cube((pillar.X,0.75f,pillar.Z), 2.0f, 1.0f, 2.0f, 5));
+        levelStore.levelObjects.Add(new Cube((pillar.X,1.75f,pillar.Z), 2.0f, 1.0f, 2.0f, 5));
+        levelStore.levelObjects.Add(new Cube((pillar.X,2.75f,pillar.Z), 2.0f, 1.0f, 2.0f, 5));
+    }
+    
+    levelStore.levelObjects.Add(new Cube((2,2.75f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,1.75f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,2.75f,2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,1.75f,2), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((2,2.75f,0), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,1.75f,0), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,2.75f,0), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,1.75f,0), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Cube((2,2.75f,-2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2,1.75f,-2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,2.75f,-2), 2.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-2,1.75f,-2), 2.0f, 1.0f, 2.0f, 5));
+
+    levelStore.levelObjects.Add(new Door((1.25f,2.75f,-4), 0.5f, 1.0f, 2.0f, 5, HeldItem.Colors.Blue, false));
+    levelStore.levelObjects.Add(new Door((1.25f,1.75f,-4), 0.5f, 1.0f, 2.0f, 5, HeldItem.Colors.Blue, false));
+    levelStore.levelObjects.Add(new Door((-1.25f,2.75f,-4), 0.5f, 1.0f, 2.0f, 5, HeldItem.Colors.Blue, false));
+    levelStore.levelObjects.Add(new Door((-1.25f,1.75f,-4), 0.5f, 1.0f, 2.0f, 5, HeldItem.Colors.Blue, false));
+
+    levelStore.levelObjects.Add(new Cube((3,2.75f,-4), 1.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((3,1.75f,-4), 1.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-3,2.75f,-4), 1.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((-3,1.75f,-4), 1.0f, 1.0f, 2.0f, 5));
+    levelStore.levelObjects.Add(new Cube((2f,1.75f,-5.25f), 2.0f, 1.0f, 0.5f, 5));
+    levelStore.levelObjects.Add(new Cube((2f,2.75f,-5.25f), 2.0f, 1.0f, 0.5f, 5));
+    levelStore.levelObjects.Add(new Cube((-2f,1.75f,-5.25f), 2.0f, 1.0f, 0.5f, 5));
+    levelStore.levelObjects.Add(new Cube((-2f,2.75f,-5.25f), 2.0f, 1.0f, 0.5f, 5));
+
+    levelStore.levelObjects.Add(new Enemy((-1.5f,1.65f,-4.5f), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+    levelStore.levelObjects.Add(new Enemy((-1.5f,1.65f,-3.5f), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+    levelStore.levelObjects.Add(new Enemy((1.5f,1.65f,-4.5f), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+    levelStore.levelObjects.Add(new Enemy((1.5f,1.65f,-3.5f), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+
+    levelStore.levelObjects.Add(new Cube((-2,1.0f,-4), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.0f,-4), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((2,1.0f,-4), 2.0f, 0.5f, 2.0f, 6));
+
+    levelStore.levelObjects.Add(new Enemy((-2,1.65f,-6), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+    levelStore.levelObjects.Add(new Enemy((-0,1.65f,-6), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+    levelStore.levelObjects.Add(new Enemy((2,1.65f,-6), (0.6f, 0.9f), 14, 40, 100, 7, true, 4));
+    levelStore.levelObjects.Add(new Enemy((-2,1.65f,-8), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+    levelStore.levelObjects.Add(new Enemy((0,1.65f,-8), (0.6f, 0.9f), 14, 40, 100, 7, true, 4));
+    levelStore.levelObjects.Add(new Enemy((2,1.65f,-8), (0.6f, 0.9f), 12, 20, 100, 11, true, 5));
+
+    levelStore.levelObjects.Add(new Cube((-2,1.0f,-6), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.0f,-6), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((2,1.0f,-6), 2.0f, 0.5f, 2.0f, 6));
+
+    levelStore.levelObjects.Add(new Cube((-2,1.0f,-8), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.0f,-8), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((2,1.0f,-8), 2.0f, 0.5f, 2.0f, 6));
+
+    levelStore.levelObjects.Add(new Cube((-2,1.0f,-10), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((0,1.0f,-10), 2.0f, 0.5f, 2.0f, 6));
+    levelStore.levelObjects.Add(new Cube((2,1.0f,-10), 2.0f, 0.5f, 2.0f, 6));
+
+    levelStore.levelObjects.Add(new Item((0,1.5f,-10), (0.25f, 0.25f), 4, 0, false, Item.ItemsEnum.BlueKeycard));
+    levelStore.levelObjects.Add(new Item((-2,1.5f,-10), (0.25f, 0.25f), 2, 0, false, Item.ItemsEnum.LargeMedkit));
+    levelStore.levelObjects.Add(new Item((2,1.5f,-10), (0.25f, 0.25f), 9, 12, false, Item.ItemsEnum.ShellPack));
+
+    Vector3[] toproomwalls =
+    {
+        new(-4, 0, -6), new(-4, 0, -8), new(-4, 0, -10),
+        new(2, 0, -12), new(0, 0, -12), new(-2, 0, -12),
+        new(4, 0, -6), new(4, 0, -8), new(4, 0, -10),
+    };
+
+    foreach (Vector3 wall in toproomwalls)
+    {
+        levelStore.levelObjects.Add(new Cube((wall.X,1.75f,wall.Z), 2.0f, 1.0f, 2.0f, 5));
+        levelStore.levelObjects.Add(new Cube((wall.X,2.75f,wall.Z), 2.0f, 1.0f, 2.0f, 5));
+    }
+
+    levelStore.levelObjects.Add(new Button((0,2.0f,-10.99f), (0,0,1), 0.5f, 0.5f, 7, 8, 0.88f, HeldItem.Colors.Blue));
+
+    levelStore.successfullyLoaded = true;
+
+    levelStore.Sync_GL_Level();
+
+    return levelStore;
+}

@@ -1,0 +1,89 @@
+public static Level Level3Return()
+{
+    Level levelStore = new();
+
+    levelStore.levelObjects.Add(new LevelEndCondition());
+
+    for (int x = -10; x < 11; x+=2)
+    {
+        for (int z = -10; z < 11; z+=2)
+        {
+            levelStore.levelObjects.Add(new Cube((x,-1,z), 2, 0.5f, 2, 2));
+        }
+    }
+
+    for (int z = -10; z < 11; z+=2)
+    {
+        levelStore.levelObjects.Add(new Cube((-10.5f,-0.25f,z), 1, 1f, 2, 14));
+        levelStore.levelObjects.Add(new Cube((10.5f,-0.25f,z), 1, 1f, 2, 14));
+        levelStore.levelObjects.Add(new Cube((-10.5f,0.75f,z), 1, 1f, 2, 14));
+        levelStore.levelObjects.Add(new Cube((10.5f,0.75f,z), 1, 1f, 2, 14));
+
+        levelStore.levelObjects.Add(new Cube((-10.5f,1.75f,z), 1, 1f, 2, 14));
+        levelStore.levelObjects.Add(new Cube((10.5f,1.75f,z), 1, 1f, 2, 14));
+        levelStore.levelObjects.Add(new Cube((-10.5f,2.75f,z), 1, 1f, 2, 14));
+        levelStore.levelObjects.Add(new Cube((10.5f,2.75f,z), 1, 1f, 2, 14));
+
+        levelStore.levelObjects.Add(new Plane((9.5f,2.75f,z), (-1, -1, 0), 2, 1.414f, 14, 0.6f));
+        levelStore.levelObjects.Add(new Plane((-9.5f,2.75f,z), (1, -1, 0), 2, 1.414f, 14, 0.6f));
+    }
+
+    for (int x = -10; x < 11; x+=2)
+    {
+        levelStore.levelObjects.Add(new Cube((x,-0.25f,-10.5f), 2, 1f, 1, 14));
+        levelStore.levelObjects.Add(new Cube((x,-0.25f,10.5f), 2, 1f, 1, 14));
+        levelStore.levelObjects.Add(new Cube((x,0.75f,-10.5f), 2, 1f, 1, 14));
+        levelStore.levelObjects.Add(new Cube((x,0.75f,10.5f), 2, 1f, 1, 14));
+
+        levelStore.levelObjects.Add(new Cube((x,1.75f,-10.5f), 2, 1f, 1, 14));
+        levelStore.levelObjects.Add(new Cube((x,1.75f,10.5f), 2, 1f, 1, 14));
+        levelStore.levelObjects.Add(new Cube((x,2.75f,-10.5f), 2, 1f, 1, 14));
+        levelStore.levelObjects.Add(new Cube((x,2.75f,10.5f), 2, 1f, 1, 14));
+
+        levelStore.levelObjects.Add(new Plane((x,2.75f,9.5f), (0, -1, -1), 2, 1.414f, 14, 0.5f));
+        levelStore.levelObjects.Add(new Plane((x,2.75f,-9.5f), (0, -1, 1), 2, 1.414f, 14, 0.7f));
+    }
+
+    levelStore.levelObjects.Add(new Enemy((0, 0.7f, -4f), (2.0f, 2.0f), 0, 50, 2000f, 7, true, 15));
+    
+    /*Vector3[] enemies = [new(-4, 0.5f, 4), new(-4, 0.5f, -4), new(4, 0.5f, -4), new(4, 0.5f, 4), new(-4, 0.5f, 0)];
+
+    for (int i = 0; i < 5; i++)
+    {
+        levelStore.levelObjects.Add(new Enemy(enemies[i], (0.6f, 0.6f), 0, 40, 150f, 7, true, 7));
+    }*/
+
+    Vector3[] large = [new(-6, -0.5f, 4), new(2, -0.5f, 0), new(4, -0.5f, 8), new(-4, -0.5f, -8)];
+
+    for (int i = 0; i < 4; i++)
+    {
+        levelStore.levelObjects.Add(new Item(large[i], (0.25f, 0.25f), 15, 5, false, Item.ItemsEnum.LargeAmmo));
+    }
+
+    Vector3[] medium = [new(4, -0.5f, 4), new(0, -0.5f, -2), new(-4, -0.5f, 2), new(8, -0.5f, 0), new(4, -0.5f, 0)];
+
+    for (int i = 0; i < 5; i++)
+    {
+        levelStore.levelObjects.Add(new Item(medium[i], (0.25f, 0.25f), 10, 30, false, Item.ItemsEnum.MediumAmmo));
+    }
+
+    Vector3[] shells = [new(6, -0.5f, 6), new(-2, -0.5f, 6), new(-8, -0.5f, 8)];
+
+    for (int i = 0; i < 3; i++)
+    {
+        levelStore.levelObjects.Add(new Item(shells[i], (0.25f, 0.25f), 9, 12, false, Item.ItemsEnum.ShellPack));
+    }
+
+    Vector3[] medkits = [new(8, -0.5f, 8), new(-4, -0.5f, 6), new(-2, -0.5f, -4), new(-8, -0.5f, 2), new(2, -0.5f, -6)];
+
+    for (int i = 0; i < 5; i++)
+    {
+        levelStore.levelObjects.Add(new Item(medkits[i], (0.25f, 0.25f), 2, 0, false, Item.ItemsEnum.LargeMedkit));
+    }
+    
+    levelStore.successfullyLoaded = true;
+
+    levelStore.Sync_GL_Level();
+
+    return levelStore;
+}

@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 
 namespace Game1
 {
-    public abstract class CustomVector3Extension
+    public abstract class CustomVector3
     {
         public static float CalculateArea(Vector3 p1, Vector3 p2, Vector3 p3)
         {
@@ -85,6 +85,7 @@ namespace Game1
         
         public static Vector2[] ReturnNewCharUV(char c)
         {
+            // This function calculates the texture coordinates of a given character's texture in the texture atlas
             int textureIndex = Math.Clamp(characters.IndexOf(c), 0, (charsAcross * charsDown) - 1);
             int lsrOffset = (int)Math.Log2(charsAcross);
             float acrossScale = 1f / charsAcross, downScale = 1f / charsDown;

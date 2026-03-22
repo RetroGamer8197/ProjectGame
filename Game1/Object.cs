@@ -17,7 +17,7 @@ namespace Game1
             return false;
         }
 
-        public virtual void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        public virtual void Tick(float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
 
         }
@@ -74,12 +74,13 @@ namespace Game1
 
         public static void LoadFromFile(out Triangle triangleOutput, ref BinaryReader levelReader)
         {
+            // load parameters from file
             Vector3 v1, v2, v3;
             Vector2 tc1, tc2, tc3;
             float directionIndex;
-            v1 = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
-            v2 = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
-            v3 = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
+            v1 = CustomVector3.ReadVector3FromFile(ref levelReader);;
+            v2 = CustomVector3.ReadVector3FromFile(ref levelReader);;
+            v3 = CustomVector3.ReadVector3FromFile(ref levelReader);;
 
             tc1 = new(levelReader.ReadSingle(), levelReader.ReadSingle());
             tc2 = new(levelReader.ReadSingle(), levelReader.ReadSingle());
@@ -92,9 +93,10 @@ namespace Game1
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
+            // save parameters to file
             foreach (Vector3 c3 in coordinates)
             {
-                CustomVector3Extension.WriteVector3ToFile(c3, ref levelWriter);
+                CustomVector3.WriteVector3ToFile(c3, ref levelWriter);
             }
 
             foreach (Vector2 tc in textureCoordinates)
@@ -108,6 +110,7 @@ namespace Game1
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
+            // creates a list of floats containing all vertices of the triangle and their properties
             List<float> floatData = [];
             for (int i = 0; i < 3; i++)
             {
@@ -164,14 +167,15 @@ namespace Game1
 
         public static void LoadFromFile(out Plane plane, ref BinaryReader levelReader)
         {
+            // load parameters from file
             Vector3 centreTemp, normalTemp;
             float widthTemp, heightTemp;
             int textureIndexTemp;
 
             float directionIndexIn;
 
-            centreTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
-            normalTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);;
+            centreTemp = CustomVector3.ReadVector3FromFile(ref levelReader);;
+            normalTemp = CustomVector3.ReadVector3FromFile(ref levelReader);;
             widthTemp = levelReader.ReadSingle();
             heightTemp = levelReader.ReadSingle();
             textureIndexTemp = levelReader.ReadInt32();
@@ -182,8 +186,9 @@ namespace Game1
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
-            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
-            CustomVector3Extension.WriteVector3ToFile(normal, ref levelWriter);
+            // save parameters to file
+            CustomVector3.WriteVector3ToFile(centre, ref levelWriter);
+            CustomVector3.WriteVector3ToFile(normal, ref levelWriter);
             levelWriter.Write(width);
             levelWriter.Write(height);
             levelWriter.Write(textureIndex);
@@ -192,8 +197,11 @@ namespace Game1
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
+            // creates 2 triangles and generates float data from them
             List<float> floatData = [];
 
+
+            // texture coordinates are offset from the edge to reduce the effects on the edges due to bilinear filtering
             Vector2[] TextureCoordinates =
             [
                 new(textureIndex % 4 * 0.25f + 0.00390625f, (3.00390625f - (textureIndex >> 2)) * 0.25f),
@@ -230,10 +238,10 @@ namespace Game1
                     float areaSum = 0;
                     float totalArea = width * height;
 
-                    areaSum += CustomVector3Extension.CalculateArea(RectangleCoordinates[0], coordinate, RectangleCoordinates[3]);
-                    areaSum += CustomVector3Extension.CalculateArea(RectangleCoordinates[3], coordinate, RectangleCoordinates[2]);
-                    areaSum += CustomVector3Extension.CalculateArea(RectangleCoordinates[2], coordinate, RectangleCoordinates[1]);
-                    areaSum += CustomVector3Extension.CalculateArea(coordinate, RectangleCoordinates[1], RectangleCoordinates[0]);
+                    areaSum += CustomVector3.CalculateArea(RectangleCoordinates[0], coordinate, RectangleCoordinates[3]);
+                    areaSum += CustomVector3.CalculateArea(RectangleCoordinates[3], coordinate, RectangleCoordinates[2]);
+                    areaSum += CustomVector3.CalculateArea(RectangleCoordinates[2], coordinate, RectangleCoordinates[1]);
+                    areaSum += CustomVector3.CalculateArea(coordinate, RectangleCoordinates[1], RectangleCoordinates[0]);
 
                     if (areaSum < 1.05 * totalArea)
                     {
@@ -273,7 +281,7 @@ namespace Game1
 
         public static void LoadFromFile(out Button button, ref BinaryReader levelReader)
         {
-
+            // load parameters from file
             Vector3 centreTemp, normalTemp;
             float widthTemp, heightTemp;
             int activeTextureIndex, inactiveTextureIndex;
@@ -281,8 +289,8 @@ namespace Game1
 
             float directionIndexIn;
 
-            centreTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);
-            normalTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);
+            centreTemp = CustomVector3.ReadVector3FromFile(ref levelReader);
+            normalTemp = CustomVector3.ReadVector3FromFile(ref levelReader);
             widthTemp = levelReader.ReadSingle();
             heightTemp = levelReader.ReadSingle();
             activeTextureIndex = levelReader.ReadInt32();
@@ -295,8 +303,9 @@ namespace Game1
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
-            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
-            CustomVector3Extension.WriteVector3ToFile(normal, ref levelWriter);
+            // save parameters to file
+            CustomVector3.WriteVector3ToFile(centre, ref levelWriter);
+            CustomVector3.WriteVector3ToFile(normal, ref levelWriter);
             levelWriter.Write(width);
             levelWriter.Write(height);
             levelWriter.Write(activeTextureIndex);
@@ -307,6 +316,7 @@ namespace Game1
 
         public override bool CheckClickedCollision(Vector3 input, float stepScale, out float distanceFrom)
         {
+            // check a sphere around the object
             float distanceAllowedXZ = new Vector2(width / 2, width / 2).LengthSquared;
             float distanceAllowedY = height;
             Vector3 VectorDistanceFrom = centre - input;
@@ -363,22 +373,23 @@ namespace Game1
 
         public static void LoadFromFile(out LevelEndCondition levelEndCondition, ref BinaryReader levelReader)
         {
+            // no paramaters to load
             levelEndCondition = new();
         }
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
-            
+            // nothing to export as no parameters
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        public override void Tick(float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             bool noneAlive = true;
             foreach (Object O in level.levelObjects)
             {
                 if (O.objectType == ObjectType.Entity)
                 {
-                    if (((Entity)O).entityType == Entity.EntityType.Enemy && ((Entity)O).getAliveState())
+                    if (((Entity)O).entityType == Entity.EntityType.Enemy && ((Entity)O).GetAliveState())
                     {
                         noneAlive = false;
                     }
@@ -402,15 +413,15 @@ namespace Game1
 
         public static void LoadFromFile(out LevelEndButton button, ref BinaryReader levelReader)
         {
-
+            // load parameters from file
             Vector3 centreTemp, normalTemp;
             float widthTemp, heightTemp;
             int activeTextureIndex, inactiveTextureIndex;
 
             float directionIndexIn;
 
-            centreTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);
-            normalTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);
+            centreTemp = CustomVector3.ReadVector3FromFile(ref levelReader);
+            normalTemp = CustomVector3.ReadVector3FromFile(ref levelReader);
             widthTemp = levelReader.ReadSingle();
             heightTemp = levelReader.ReadSingle();
             activeTextureIndex = levelReader.ReadInt32();
@@ -422,8 +433,9 @@ namespace Game1
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
-            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
-            CustomVector3Extension.WriteVector3ToFile(normal, ref levelWriter);
+            // save parameters to file
+            CustomVector3.WriteVector3ToFile(centre, ref levelWriter);
+            CustomVector3.WriteVector3ToFile(normal, ref levelWriter);
             levelWriter.Write(width);
             levelWriter.Write(height);
             levelWriter.Write(activeTextureIndex);
@@ -534,6 +546,7 @@ namespace Game1
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
+            // generates 12 triangles to create the faces of the cube
             List<float> floatData = [];
 
             for (int i = 0; i < vertexindices.Length / 3; i++)
@@ -547,11 +560,12 @@ namespace Game1
 
         public static void LoadFromFile(out Cube cube, ref BinaryReader levelReader)
         {
+            // load parameters from file
             Vector3 centreTemp;
             float scaleX, scaleY, scaleZ;
             int TextureIndexIn;
 
-            centreTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);
+            centreTemp = CustomVector3.ReadVector3FromFile(ref levelReader);
             scaleX = levelReader.ReadSingle();
             scaleY = levelReader.ReadSingle();
             scaleZ = levelReader.ReadSingle();
@@ -562,7 +576,8 @@ namespace Game1
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
-            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            // save parameters to file
+            CustomVector3.WriteVector3ToFile(centre, ref levelWriter);
             levelWriter.Write(scaleX);
             levelWriter.Write(scaleY);
             levelWriter.Write(scaleZ);
@@ -601,6 +616,7 @@ namespace Game1
 
         public override bool CheckCollision(Vector3 input, Vector3 playerScale)
         {
+            // uses cube collision if the door is closed
             if (!currentState)
             {
                 return false;
@@ -610,6 +626,7 @@ namespace Game1
 
         public override float[] GenerateFloatData(Vector3 playerRotation)
         {
+            // only generate data if the door is closed
             if (!currentState)
             {
                 return [];
@@ -621,13 +638,14 @@ namespace Game1
 
         public static void LoadFromFile(out Door door, ref BinaryReader levelReader)
         {
+            // load parameters from file
             Vector3 centreTemp;
             float scaleX, scaleY, scaleZ;
             int TextureIndexIn;
             HeldItem.Colors color;
             bool defaultState;
 
-            centreTemp = CustomVector3Extension.ReadVector3FromFile(ref levelReader);
+            centreTemp = CustomVector3.ReadVector3FromFile(ref levelReader);
             scaleX = levelReader.ReadSingle();
             scaleY = levelReader.ReadSingle();
             scaleZ = levelReader.ReadSingle();
@@ -640,7 +658,8 @@ namespace Game1
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
-            CustomVector3Extension.WriteVector3ToFile(centre, ref levelWriter);
+            // save parameters to file
+            CustomVector3.WriteVector3ToFile(centre, ref levelWriter);
             levelWriter.Write(scaleX);
             levelWriter.Write(scaleY);
             levelWriter.Write(scaleZ);

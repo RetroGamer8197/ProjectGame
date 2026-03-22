@@ -87,6 +87,13 @@ namespace Game1 {
 
             BinaryReader levelFile;
 
+            if (fileLocation == "")
+            {
+                ErrorReporter.Report("Empty line or no files named in LevelNames.txt");
+                level.successfullyLoaded = false;
+                return; 
+            }
+
             try
             {
                 levelFile = new(File.Open(fileLocation, FileMode.Open));

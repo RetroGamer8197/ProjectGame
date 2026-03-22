@@ -1,3 +1,4 @@
+using System.Net.Security;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -5,7 +6,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Game1
 {
-
     public class Game : GameWindow
     {
 
@@ -14,8 +14,7 @@ namespace Game1
             Menu, Level, Pause, Loading, Reset, Error, None
         }
 
-
-        public const float speed = 2f;
+        public const float speed = 2f; // everything which moves is relative to this value
         public float WINDOW_WIDTH = 1.6f / 0.9f, WINDOW_HEIGHT = 1.0f;
         private string[] InitialLevelNames = [];
         private Queue<string> LevelFileNames = [];
@@ -37,7 +36,7 @@ namespace Game1
         public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
-            // caps framerate to 480 FPS unless on macos which is limited to 120 for battery life
+            // caps framerate to 480 FPS unless on macos which is limited to 120 for battery life (I developed this on a macbook)
             UpdateFrequency = 480;
             if (OperatingSystem.IsMacOS())
             {
@@ -225,7 +224,7 @@ namespace Game1
             {
                 if (levelObject.objectType == Object.ObjectType.Entity || levelObject.objectType == Object.ObjectType.EndCondition)
                 {
-                    levelObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player, ref HUD_Object);
+                    levelObject.Tick((float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player, ref HUD_Object);
                 }
             }
 
@@ -235,9 +234,9 @@ namespace Game1
             {
                 if (tempObject.objectType == Object.ObjectType.Entity)
                 {
-                    tempObject.Tick(player.Position, ref player.Health, (float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player, ref HUD_Object);
+                    tempObject.Tick((float)Math.Clamp(deltaTime, 0.0f, 0.1f), ref levelStore, ref player, ref HUD_Object);
                 }
-                if (!((Entity)tempObject).getAliveState())
+                if (!((Entity)tempObject).GetAliveState())
                 {
                     deadTempObjects.Push(tempObject);
                 }
@@ -326,7 +325,7 @@ namespace Game1
             {
                 // used for building levels and debugging
                 levelStore = LevelTemp.Level3Return();
-                levelStore.ExportToFile("Levels/boss.lvl");
+                //levelStore.ExportToFile("Levels/boss.lvl");
 
                 /*levelStore = LevelTemp.DemoReturn();
                 levelStore.ExportToFile("Levels/demo.lvl");*/

@@ -545,6 +545,7 @@ namespace Game1
 
         public void TimerTick(float deltaTime)
         {
+            // make all timers tick over by the delta time (seconds)
             if (reloadTimer > 0)
             {
                 reloadTimer -= deltaTime;

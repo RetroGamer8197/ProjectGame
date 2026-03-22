@@ -1033,12 +1033,12 @@ namespace Game1
 
             levelStore.levelObjects.Add(new Enemy((0, 0.7f, -4f), (2.0f, 2.0f), 0, 50, 2000f, 7, true, 15));
             
-            /*Vector3[] enemies = [new(-4, 0.5f, 4), new(-4, 0.5f, -4), new(4, 0.5f, -4), new(4, 0.5f, 4), new(-4, 0.5f, 0)];
+            Vector3[] enemies = [new(-4, 0.5f, 4), new(-4, 0.5f, -4), new(4, 0.5f, -4), new(4, 0.5f, 4), new(-4, 0.5f, 0)];
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
             {
                 levelStore.levelObjects.Add(new Enemy(enemies[i], (0.6f, 0.6f), 0, 40, 150f, 7, true, 7));
-            }*/
+            }
 
             Vector3[] large = [new(-6, -0.5f, 4), new(2, -0.5f, 0), new(4, -0.5f, 8), new(-4, -0.5f, -8)];
 

@@ -14,11 +14,11 @@ public class Entity : Object
             None, Enemy, Item
         }
         public Vector3 Position;
-        public Vector3 origin;
-        public Vector2 scale;
-        public int textureIndex, healthChange;
-        public bool pathfinding;
-        public EntityType entityType;
+        public readonly Vector3 origin;
+        public readonly Vector2 scale;
+        public readonly int textureIndex, healthChange;
+        public readonly bool pathfinding;
+        public readonly EntityType entityType;
         protected bool alive = true;
         public Entity(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, bool pathfindingIn, EntityType entityTypeIn)
         {
@@ -31,14 +31,15 @@ public class Entity : Object
             pathfinding = pathfindingIn;
             origin = position;
         }
-        public virtual bool getAliveState()
+        public virtual bool GetAliveState()
         {
             return alive;
         }
 
         public static void LoadFromFile(out Entity entity, ref BinaryReader levelFile)
         {
-            entity = new Entity(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
+            // load parameters from file
+            entity = new Entity(CustomVector3.ReadVector3FromFile(ref levelFile),
                                 (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), 
                                 levelFile.ReadInt32(), levelFile.ReadBoolean(), Entity.EntityType.None);
         }
@@ -60,6 +61,7 @@ public class Entity : Object
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
+            // save parameters to file
             levelWriter.Write((byte)entityType);
         }
     }
@@ -73,32 +75,31 @@ public class Entity : Object
         protected private float actionTimer = 5.0f;
         protected private float animationTimer = 0.0f;
         protected private int animationFrame = 0;
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        public override void Tick(float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
-            if (!alive)
+            if (!alive) // do not continue if the entity is no longer alive
             {
                 return;
             }
-            Vector3 directionVector = (playerPosition.X - Position.X, 0, playerPosition.Z - Position.Z);
+            Vector3 directionVector = (player.Position.X - Position.X, 0, player.Position.Z - Position.Z);
 
-            bool canSeePlayer = RaycastToPlayer(playerPosition, ref level);
+            bool canSeePlayer = RaycastToPlayer(player.Position, ref level);
             // check if the enemy has line of sight with the player
             if (!canSeePlayer || !pathfinding)// || (directionVector.LengthSquared > 25))
             {
-                directionVector = (0, 0, 0); //(new Random().Next(-5, 5), 0, new Random().Next(-5, 5));
+                directionVector = (0, 0, 0);
             }
-            else
-            {
-
-            }
-
+            
+            // make unit length so speed of enemies is constant relative to delta time
             if (directionVector.LengthSquared > 0)
             {
                 directionVector.Normalize();
             }
 
+            // move relative to delta time
             Position += directionVector * Game.speed * deltaTime / 4;
 
+            // make sure a movement doesn't collide with an object
             bool collided = false;
             foreach (Object o in level.levelObjects)
             {
@@ -109,38 +110,27 @@ public class Entity : Object
                 Position -= directionVector * Game.speed * deltaTime / 4;
             }
 
-            if (float.IsNaN(Position.X))
-            {
-                Console.WriteLine();
-            }
-            if ((Position - playerPosition).LengthSquared < 0.1f)
-            {
-                /*Position = origin;
-                if (!player.Invincibility)
-                {
-                    player.Health -= 5;
-                    player.Invincibility = true;
-                    player.InvincibilityTimer = 0.5f;
-                }*/
-            }
-
+            // add randomness to actions and time them using delta time
             if (actionTimer <= 0 && directionVector != (0,0,0))
             {
                 Random randomNum = new Random();
                 if (randomNum.Next(0, 300) > 250)
                 {
                     actionTimer = startingActionTimer;
-                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, playerPosition - Position, 30f / MathF.Pow(healthChange, 1f/2f)));
+                    level.temporaryObjects.Add(new Projectile(Position + (Vector3.UnitY * (scale.Y / 5)), (0.1f, 0.1f), projectileTextureIndex, healthChange, player.Position - (Position + (Vector3.UnitY * (scale.Y / 5))), 30f / MathF.Pow(healthChange, 1f/2f)));
                 }
             } else
             {
                 actionTimer -= deltaTime;
             }
-            if (canSeePlayer) // directionVector.Length > 0.1f || 
+
+            // only animate entities when they are moving and so can see the player
+            if (canSeePlayer) 
             {
                 animationTimer += deltaTime;
-                if (animationTimer > 0.5f)
+                if (animationTimer > 0.25f)
                 {
+                    animationTimer = 0f;
                     animationFrame += 1;
                     if (animationFrame > 1)
                     {
@@ -148,20 +138,21 @@ public class Entity : Object
                     }
                 }
             }
-            
         }
 
         public static void LoadFromFile(out Enemy entity, ref BinaryReader levelFile)
         {
-            entity = new Enemy(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
+            // load parameters from file
+            entity = new Enemy(CustomVector3.ReadVector3FromFile(ref levelFile),
                                     (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadSingle(), levelFile.ReadInt32(), levelFile.ReadBoolean(), levelFile.ReadSingle());
         }
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
+            // save parameters to file
             base.ExportToFile(ref levelWriter);
 
-            CustomVector3Extension.WriteVector3ToFile(origin, ref levelWriter);
+            CustomVector3.WriteVector3ToFile(origin, ref levelWriter);
             levelWriter.Write(scale.X);
             levelWriter.Write(scale.Y);
             levelWriter.Write(textureIndex);
@@ -187,6 +178,7 @@ public class Entity : Object
         {  
             if (alive)
             {
+                // checks a cylinder around the entity's centre point
                 float distanceAllowedXZ = new Vector2(scale.X / 2, scale.X / 2).LengthSquared;
                 float distanceAllowedY = scale.Y;
                 Vector3 VectorDistanceFrom = Position - input;
@@ -201,6 +193,7 @@ public class Entity : Object
                 }
             } else
             {
+                // ignore if no longer alive
                 distanceFrom = float.MaxValue;
                 return false;
             }
@@ -209,11 +202,13 @@ public class Entity : Object
 
         public bool RaycastToPlayer(Vector3 playerPosition, ref Level level)
         {
+            // using a voxel-based algorithm to check for line of sight. effective at short distances and enclosed spaces 
+            // but not so much at longer distances. this is countered for in the level design
             float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
             float stepScale = 1 / 100f;
+            Vector3 checkPosition = Player.FloorPosition(Position, stepScale);
             Vector3 direction = Vector3.Normalize(playerPosition - Position);
             float stepX = float.Sign(direction.X) * stepScale, stepY = float.Sign(direction.Y) * stepScale, stepZ = float.Sign(direction.Z) * stepScale;
-            Vector3 checkPosition = Player.FloorPosition(Position, stepScale);
             Vector3 RealPosition = Position;
 
             float modulus = 1;
@@ -223,6 +218,8 @@ public class Entity : Object
             {
                 return false;
             }
+
+            // distance to step to the next 'gridline' on each axis
 
             tDeltaX = Math.Abs(stepScale / direction.X);
             tDeltaY = Math.Abs(stepScale / direction.Y);
@@ -240,6 +237,8 @@ public class Entity : Object
                 tMaxY = Math.Abs((checkPosition.Y + stepY - RealPosition.Y) % modulus / direction.Y);
                 tMaxZ = Math.Abs((checkPosition.Z + stepZ - RealPosition.Z) % modulus / direction.Z);
             }
+
+            // check along the line until a collision occurs or the player is reached
 
             while ((checkPosition - RealPosition).Length < maxDistance)
             {
@@ -270,11 +269,11 @@ public class Entity : Object
                     }
                 }
 
-                float distance;
                 foreach (Object O in level.levelObjects)
                 {
-                    if (O.objectType != ObjectType.Entity && O.CheckClickedCollision(checkPosition, stepScale, out distance) && distance < 0.05f)
+                    if (O.objectType != ObjectType.Entity && O.CheckClickedCollision(checkPosition, stepScale, out float distance) && distance < 0.05f)
                     {
+                        // allow the entity to see through other entities and to prevent collisions with itself
                         return false;
                     }
                 }
@@ -301,7 +300,7 @@ public class Entity : Object
 
     public class Projectile : Enemy
     {
-        private float speed;
+        private readonly float speed;
         Vector3 directionToTravel, initialPosition;
 
         public Projectile(Vector3 position, Vector2 scaleIn, int textureIndexIn, int healthChangeIn, Vector3 _directionToTravel, float speedIn):  base(position, scaleIn, textureIndexIn, healthChangeIn, 1, -1, false, -1f)
@@ -322,11 +321,12 @@ public class Entity : Object
             return false;
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        public override void Tick(float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
+            // if the projectile is no longer alive, it will be deleted by the Game in the next frame update
             if (alive)
             {
-                Position += Vector3.Normalize(directionToTravel) * deltaTime * speed;
+                Position += Vector3.Normalize(directionToTravel) * deltaTime * speed * Game.speed / 2f;
 
                 foreach (Object O in level.levelObjects)
                 {
@@ -336,7 +336,7 @@ public class Entity : Object
                     }
                 }
 
-                if ((Position - playerPosition).LengthSquared < 0.1f)
+                if ((Position - player.Position).LengthSquared < 0.1f)
                 {
                     alive = false;
                     player.Damage(healthChange);
@@ -362,7 +362,7 @@ public class Entity : Object
 
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        public override void Tick(float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             if (alive)
             {
@@ -394,16 +394,6 @@ public class Entity : Object
                 {
                     alive = false;
                 }
-
-                /*if ((Position - playerPosition).LengthSquared < 0.1f)
-                {
-                    alive = false;
-                    e.Damage(healthChange);
-                }
-                if ((Position - initialPosition).Length > 50f)
-                {
-                    alive = false;
-                }*/
             }
         }
     }
@@ -419,15 +409,17 @@ public class Entity : Object
 
         public static void LoadFromFile(out Item entity , ref BinaryReader levelFile)
         {
-            entity = new Item(CustomVector3Extension.ReadVector3FromFile(ref levelFile),
+            // load parameters from file
+            entity = new Item(CustomVector3.ReadVector3FromFile(ref levelFile),
                                 (levelFile.ReadSingle(), levelFile.ReadSingle()), levelFile.ReadInt32(), levelFile.ReadInt32(), levelFile.ReadBoolean(), (Item.ItemsEnum)levelFile.ReadByte());
         }
 
         public override void ExportToFile(ref BinaryWriter levelWriter)
         {
+            // save parameters to file
             base.ExportToFile(ref levelWriter);
 
-            CustomVector3Extension.WriteVector3ToFile(origin, ref levelWriter);
+            CustomVector3.WriteVector3ToFile(origin, ref levelWriter);
             levelWriter.Write(scale.X);
             levelWriter.Write(scale.Y);
             levelWriter.Write(textureIndex);
@@ -436,7 +428,7 @@ public class Entity : Object
             levelWriter.Write((byte)returnItem);
         }
 
-        public override void Tick(Vector3 playerPosition, ref float health, float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
+        public override void Tick(float deltaTime, ref Level level, ref Player player, ref HUD HUD_Object)
         {
             if (!alive)
             {
@@ -447,8 +439,9 @@ public class Entity : Object
             {
                 Console.WriteLine();
             }
-            if ((Position - playerPosition).LengthSquared < 0.1f)
+            if ((Position - player.Position).LengthSquared < 0.1f)
             {
+                // adds the right item to the player based on the value of its returnItem
                 switch (returnItem)
                 {
                     case ItemsEnum.RedKeycard:
